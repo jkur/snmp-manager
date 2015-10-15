@@ -1,0 +1,67 @@
+{% from "macros/_forms.html" import render_field %}
+{% from "macros/_forms.html" import render_field_hidden %}
+
+<!doctype html>
+<html class="no-js" lang="en">
+  <head>
+    <meta charset="utf-8" />
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Entropy</title>
+	<link href='http://fonts.googleapis.com/css?family=Exo:300,500|Economica:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+
+	  {% block css %}
+		{# for css extensions #}
+	  {% endblock css %}
+	
+      {% assets "foundation" %}
+	  <link rel="stylesheet" type="text/css" media="screen" href="{{ ASSET_URL }}" />
+      {% endassets %}
+	  <link rel="stylesheet" href="/static/appcss/osm.css" type="text/css" media="screen"/>
+  </head>
+  <title>Entropy</title>
+  <body>
+	<div class="row">
+	  {% if not current_user.is_anonymous() %}
+		<div class="medium-11 columns">&nbsp;</div>
+		<div class="medium-1 columns">
+		  <span class="secondary label round radius"><a href="{{ url_for('security.logout') }}">Logout ({{current_user.username}}
+		  {% if current_user.is_admin() %}
+			, Admin
+		  {% endif %}
+		  )</a></span>
+		{% else %}
+		  <div class="medium-11 columns">&nbsp;</div>
+		  <div class="medium-1 columns">
+			<span class="secondary label round radius"><a href="{{ url_for('security.login') }}">Login</a></span>
+		  </div>
+		{% endif %}
+
+		<div class="medium-12 columns">
+		  {% with messages = get_flashed_messages() %}
+			{% if messages %}
+			  <div class="panel callout radius">
+				{% for message in messages %}
+				  {{ message }}
+				{% endfor %}
+			  </div>
+	  		{% endif %}
+		  {% endwith %}
+		</div>
+	</div>
+	
+	</div>
+	<div class="row">
+		{% block content %}
+		{% endblock %}
+	  </div>
+	</div class="row">
+	{% assets "js_all" %}
+      <script type="text/javascript" src="{{ ASSET_URL }}"></script>
+	{% endassets %}
+
+	{% block jsscript %}
+	  {# for in template extensions #}
+	{% endblock jsscript %}
+	</body>
+  </html>
