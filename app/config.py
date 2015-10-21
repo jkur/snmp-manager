@@ -30,6 +30,9 @@ class Config(object):
     # SECURITY_PASSWORD_HASH = 'plaintext'
     # SECURITY_TOKEN_AUTHENTICATION_HEADER = "Auth-Token"
 
+    
+    
+
 
 class Development(Config):
     DEBUG = True

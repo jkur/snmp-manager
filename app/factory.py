@@ -13,8 +13,8 @@ import logging
 def create_app(package_name, package_path, settings_override=None, **kwargs):
     app = Flask(__name__, **kwargs)
     app.config.from_object('app.config.Config')
-    app.config.from_pyfile('settings.cfg', silent=True)
     app.config.from_object(settings_override)
+    app.config.from_pyfile('settings.cfg', silent=True)
 
     # mail.init_app(app)
     # db.init_app(app)

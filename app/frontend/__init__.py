@@ -1,6 +1,8 @@
 # coding: utf-8
 from .. import factory
+
 from .views import mod as views
+from ..services import switch_db as db
 
 
 def create_app(settings_override=None):
@@ -10,8 +12,14 @@ def create_app(settings_override=None):
                              static_url_path="/static",
                              static_folder="static")
 
+    db.init_app(app)
+
+    #app.errorhandler(404)(not_found)
+    #app.errorhandler(403)(forbidden)
+    #app.errorhandler(401)(unauthorized)
 
     app.register_blueprint(views)
+
     print((app.url_map))
     return app
 

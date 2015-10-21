@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="row">
+    <div class="large-12 columns">
+      <table>
+        <tr>
+          <th>Hostname</th>
+          <th>Model</th>
+          <th>Firmware</th>
+        </tr>
+        
+        <tr>
+          <td>{{ device.hostname }}</td>
+          <td>{{ device.model() }}</td>
+          <td>{{ device.firmware() }}</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+  <div class="row">
+    <div class="large-12 columns">
+      <form method="POST">
+      {% for port in device.get_ports() %}
+        {% if port.idx() is odd and port.is_interface() %}
+          <span class="{% if port.is_up() %}success{% endif %} label">{{ port.descr() }}<br/>
+            <input type="checkbox" name="port" id="{{ port.idx() }}" {% if port.has_port_auth() %} checked="checked"{% endif %} />
+          </span>
+          {% endif %}
+        {% endfor %}
+        <br/>
+        <br/>
+        {% for port in device.get_ports() %}
+          {% if port.idx() is even and port.is_interface() %}
+          <span class="{% if port.is_up() %}success{% endif %} label">{{ port.descr() }}<br/>
+            <input type="checkbox" name="port" id="{{ port.idx() }}" {% if port.has_port_auth() %} checked="checked"{% endif %} />
+          </span>
+          {% endif %}
+        {% endfor %}
+        </form>
+    </div>
+  </div>
+{% endblock %}
