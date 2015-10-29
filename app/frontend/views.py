@@ -18,14 +18,21 @@ def index():
 def detail(hostname):
     device = db.get_or_404(hostname)
     if request.method == 'POST':
+        if request.form.get('802.1x-enabled', False):
+            value = request.form.get('802.1x-enabled')
+            setauth = True if value == "1" else False
+            print ("setting port auth", setauth)
+            device.set_port_auth_enabled(setauth)
         for key, value in request.form.items():
             if key.startswith('port-auth-'):
                 idx = int(key.split('-')[-1])
-                # port_auth_enabled = bool(value)
-                # port = device.get_port(idx)
-                # if port.has_port_auth() and not port_auth_enabled:
-                #     port.set_port_auth(False)
-                # if not port.has_port_auth() and port_auth_enabled:
-                #     port.set_port_auth(True)
+                port_auth_enabled = True if value == "true" else False
+                port = device.get_port(idx)
+                if port.has_port_auth() and not port_auth_enabled:
+                    port.set_port_auth(False)
+                    print("Set port {} to NOAUTH".format(port.idx()))
+                if not port.has_port_auth() and port_auth_enabled:
+                    port.set_port_auth(True)
+                    print("Set port {} to AUTH".format(port.idx()))
         redirect("/switch/{}".format(hostname))
     return render_template('detail.html', device=device)

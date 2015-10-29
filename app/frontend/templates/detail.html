@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 
 {% block content %}
+      <form method="POST" name="portauth">
+
   <div class="row">
     <div class="large-12 columns">
       <table>
@@ -8,19 +10,26 @@
           <th>Hostname</th>
           <th>Model</th>
           <th>Firmware</th>
+          <th>Port Auth Enabled</th>
         </tr>
         
         <tr>
           <td>{{ device.hostname }}</td>
           <td>{{ device.model() }}</td>
           <td>{{ device.firmware() }}</td>
+          <td>
+            <select name="802.1x-enabled">
+              <option value="1" {% if device.port_auth_enabled()  %}selected{% endif %}>Yes</option>
+              <option value="2" {% if not device.port_auth_enabled() %}selected{% endif %}>No</option>
+            </select>
+          </td>
         </tr>
       </table>
     </div>
   </div>
   <div class="row">
     <div class="large-12 columns">
-      <form method="POST" name="portauth">
+        <p>
         <input type="hidden" name="hostname" value="{{ device.hostname }}" />
       {% for port in device.get_ports() %}
         {% if port.idx() is odd and port.is_interface() %}
@@ -41,6 +50,7 @@
           {% endif %}
         {% endfor %}
         <br/>
+        </p>
         <input class="button" type="submit">
         </form>
     </div>

@@ -141,6 +141,15 @@ class SNMP_Device():
     def firmware(self):
         return self._snmp.getfirst('ENTITY-MIB::entPhysicalSoftwareRev.1').value
 
+    def port_auth_enabled(self):
+        return int(self._snmp.get('IEEE8021-PAE-MIB::dot1xPaeSystemAuthControl.0').value) == 1
+
+    def set_port_auth_enabled(self, enable):
+        if enable:
+            self._snmp.set('IEEE8021-PAE-MIB::dot1xPaeSystemAuthControl.0', 1)
+        else:
+            self._snmp.set('IEEE8021-PAE-MIB::dot1xPaeSystemAuthControl.0', 2)
+
     def get_ports(self):
         if self._portlist is None:
             self._portlist = [SNMP_IFPort(idx.value, self._snmp) for idx in self._snmp.getall('.1.3.6.1.2.1.2.2.1.1')]
