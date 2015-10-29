@@ -11,11 +11,11 @@ class Test_View(FlaskAppTest):
         self.assert_404(r)
 
     def test_detail_200(self):
-        r = self.client.get("/switch/switch-loft4-0")
+        r = self.client.get("/switch/switch-loft4-2")
         self.assert_200(r)
 
     def test_detail_200_v3(self):
-        r = self.client.get("/switch/switch-loft4-1")
+        r = self.client.get("/switch/switch-loft4-2")
         self.assert_200(r)
 
 
