@@ -20,11 +20,13 @@
   </div>
   <div class="row">
     <div class="large-12 columns">
-      <form method="POST">
+      <form method="POST" name="portauth">
+        <input type="hidden" name="hostname" value="{{ device.hostname }}" />
       {% for port in device.get_ports() %}
         {% if port.idx() is odd and port.is_interface() %}
           <span class="{% if port.is_up() %}success{% endif %} label">{{ port.descr() }}<br/>
-            <input type="checkbox" name="port" id="{{ port.idx() }}" {% if port.has_port_auth() %} checked="checked"{% endif %} />
+            <input type="checkbox" id="port-{{ port.idx() }}" onChange="toggle_port_auth({{ port.idx() }});" name="port-{{ port.idx() }}" value="{{ port.idx() }}" {% if port.has_port_auth() %} checked="checked"{% endif %} />
+            <input type="hidden"   name="port-auth-{{ port.idx() }}" id="port-auth-{{ port.idx() }}" {% if port.has_port_auth() %} value="true" {% else %} value="false" {% endif %} />
           </span>
           {% endif %}
         {% endfor %}
@@ -33,11 +35,27 @@
         {% for port in device.get_ports() %}
           {% if port.idx() is even and port.is_interface() %}
           <span class="{% if port.is_up() %}success{% endif %} label">{{ port.descr() }}<br/>
-            <input type="checkbox" name="port" id="{{ port.idx() }}" {% if port.has_port_auth() %} checked="checked"{% endif %} />
+            <input type="checkbox" id="port-{{ port.idx() }}" onChange="toggle_port_auth({{ port.idx() }});" name="port-{{ port.idx() }}" value="{{ port.idx() }}" {% if port.has_port_auth() %} checked="checked"{% endif %} />
+            <input type="hidden"   name="port-auth-{{ port.idx() }}" id="port-auth-{{ port.idx() }}" {% if port.has_port_auth() %} value="true" {% else %} value="false" {% endif %} />
           </span>
           {% endif %}
         {% endfor %}
+        <br/>
+        <input class="button" type="submit">
         </form>
     </div>
   </div>
+{% endblock %}
+{% block jsscript %}
+  function toggle_port_auth(idx) {
+      var port_auth = document.getElementById('port-'+idx).checked;
+      if (port_auth == false) {
+          document.getElementById('port-auth-'+idx).value = 'false';
+          console.log("value: false");
+      }
+      else {
+          document.getElementById('port-auth-'+idx).value = 'true';
+          console.log("value: true");
+      }
+  }
 {% endblock %}

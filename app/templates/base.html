@@ -15,8 +15,10 @@
   <body>
 	{% block content %}
 	{% endblock %}
-	{% block jsscript %}
-	  {# for in template extensions #}
-	{% endblock jsscript %}
+    <script type="text/javascript">
+	  {% block jsscript %}
+	    {# for in template extensions #}
+      {% endblock jsscript %}
+    </script>
   </body>
 </html>

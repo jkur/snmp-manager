@@ -88,7 +88,12 @@ class SNMP_IFPort():
         return self._porttype == 53  # propvirtual
 
     def is_interface(self):
+        if int(self._snmp.get('IF-MIB::ifAdminStatus.{}'.format(self._portidx)).value) != 1:
+            return False
         return self._porttype == 6   # ethernetCsmacd
+
+    def is_loopback(self):
+        return self._porttype == 24   # ethernetCsmacd
 
     def is_trunk(self):
         return self._porttype == 54  # propMultiplexor
@@ -99,9 +104,11 @@ class SNMP_IFPort():
     def has_port_auth(self):
         return int(self._snmp.get('HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xPaePortAuth.{}'.format(self._portidx)).value) == 1
 
-    def set_port_auth(self, active, auth_vlan, unauth_vlan):
-        self._snmp.set('HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xAuthUnauthVid.{}'.format(self._portidx), unauth_vlan)
-        self._snmp.set('HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xAuthAuthVid.{}'.format(self._portidx), auth_vlan)
+    def set_port_auth(self, active, auth_vlan=None, unauth_vlan=None):
+        if unauth_vlan is not None:
+            self._snmp.set('HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xAuthUnauthVid.{}'.format(self._portidx), unauth_vlan)
+        if auth_vlan is not None:
+            self._snmp.set('HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xAuthAuthVid.{}'.format(self._portidx), auth_vlan)
         if active:
             self._snmp.set('HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xPaePortAuth.{}'.format(self._portidx), 1)
         else:
