@@ -33,7 +33,7 @@
         <input type="hidden" name="hostname" value="{{ device.hostname }}" />
       {% for port in device.get_ports() %}
         {% if port.idx() is odd and port.is_interface() %}
-          <span class="{% if port.is_up() %}success{% endif %} label">{{ port.descr() }}<br/>
+          <span class="{% if port.is_up() %}success{% endif %} label">{{ port.descr() }}-{{ port.alias() }}<br/>
             <input type="checkbox" id="port-{{ port.idx() }}" onChange="toggle_port_auth({{ port.idx() }});" name="port-{{ port.idx() }}" value="{{ port.idx() }}" {% if port.has_port_auth() %} checked="checked"{% endif %} />
             <input type="hidden"   name="port-auth-{{ port.idx() }}" id="port-auth-{{ port.idx() }}" {% if port.has_port_auth() %} value="true" {% else %} value="false" {% endif %} />
           </span>
@@ -43,7 +43,7 @@
         <br/>
         {% for port in device.get_ports() %}
           {% if port.idx() is even and port.is_interface() %}
-          <span class="{% if port.is_up() %}success{% endif %} label">{{ port.descr() }}<br/>
+          <span class="{% if port.is_up() %}success{% endif %} label">{{ port.descr() }}-{{ port.alias() }}<br/>
             <input type="checkbox" id="port-{{ port.idx() }}" onChange="toggle_port_auth({{ port.idx() }});" name="port-{{ port.idx() }}" value="{{ port.idx() }}" {% if port.has_port_auth() %} checked="checked"{% endif %} />
             <input type="hidden"   name="port-auth-{{ port.idx() }}" id="port-auth-{{ port.idx() }}" {% if port.has_port_auth() %} value="true" {% else %} value="false" {% endif %} />
           </span>
