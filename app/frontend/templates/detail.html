@@ -29,33 +29,49 @@
   </div>
   <div class="row">
     <div class="large-12 columns">
-        <p>
+      <p>
         <input type="hidden" name="hostname" value="{{ device.hostname }}" />
       {% for port in device.get_ports() %}
         {% if port.idx() is odd and port.is_interface() %}
-          <span class="{% if port.is_up() %}success{% endif %} label">{{ port.descr() }}-{{ port.alias() }}<br/>
-            <input type="checkbox" id="port-{{ port.idx() }}" onChange="toggle_port_auth({{ port.idx() }});" name="port-{{ port.idx() }}" value="{{ port.idx() }}" {% if port.has_port_auth() %} checked="checked"{% endif %} />
-            <input type="hidden"   name="port-auth-{{ port.idx() }}" id="port-auth-{{ port.idx() }}" {% if port.has_port_auth() %} value="true" {% else %} value="false" {% endif %} />
+          <span class="{% if port.is_up() %}success{% endif %} label">
+            {{ port.descr() }}<br/>
+            <input type="checkbox" id="port-{{ port.idx() }}"
+                   onChange="toggle_port_auth({{ port.idx() }});"
+                   name="port-{{ port.idx() }}"
+                   value="{{ port.idx() }}" {% if port.has_port_auth() %} checked="checked"{% endif %}
+                   />
+            <input type="hidden" name="port-auth-{{ port.idx() }}"
+                   id="port-auth-{{ port.idx() }}" {% if port.has_port_auth() %} value="true" {% else %} value="false" {% endif %} />
+                   <br/>
+            {{ port.alias() }}
           </span>
-          {% endif %}
-        {% endfor %}
-        <br/>
-        <br/>
-        {% for port in device.get_ports() %}
-          {% if port.idx() is even and port.is_interface() %}
-          <span class="{% if port.is_up() %}success{% endif %} label">{{ port.descr() }}-{{ port.alias() }}<br/>
-            <input type="checkbox" id="port-{{ port.idx() }}" onChange="toggle_port_auth({{ port.idx() }});" name="port-{{ port.idx() }}" value="{{ port.idx() }}" {% if port.has_port_auth() %} checked="checked"{% endif %} />
-            <input type="hidden"   name="port-auth-{{ port.idx() }}" id="port-auth-{{ port.idx() }}" {% if port.has_port_auth() %} value="true" {% else %} value="false" {% endif %} />
+        {% endif %}
+      {% endfor %}
+      <br/>
+      <br/>
+      {% for port in device.get_ports() %}
+        {% if port.idx() is even and port.is_interface() %}
+          <span class="{% if port.is_up() %}success{% endif %} label">
+            {{ port.descr() }}<br/>
+            <input type="checkbox"
+                   id="port-{{ port.idx() }}"
+                   onChange="toggle_port_auth({{ port.idx() }});"
+                   name="port-{{ port.idx() }}" value="{{ port.idx() }}" {% if port.has_port_auth() %} checked="checked"{% endif %} />
+            <input type="hidden"
+                   name="port-auth-{{ port.idx() }}"
+                   id="port-auth-{{ port.idx() }}" {% if port.has_port_auth() %} value="true" {% else %} value="false" {% endif %} />
+                   <br/>
+           {{ port.alias() }}
           </span>
-          {% endif %}
-        {% endfor %}
-        <br/>
-        </p>
-        <input class="button" type="submit">
-        </form>
-    </div>
-  </div>
+        {% endif %}
+      {% endfor %}
+      </p>
+      <input class="button" type="submit" />
+      </form>
+      </div>
+      </div>
 {% endblock %}
+    
 {% block jsscript %}
   function toggle_port_auth(idx) {
       var port_auth = document.getElementById('port-'+idx).checked;
