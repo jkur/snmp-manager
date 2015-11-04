@@ -4,3 +4,8 @@ env/
 __pycache__
 .coverage
 app/settings.cfg
+.DS_STORE
+.DS_Store
+__MACOSX
+app/static/foundation-icon-font-3.zip
+app/static/foundation-icons/.fontcustom-data

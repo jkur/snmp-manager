@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from flask import render_template, Blueprint, request, redirect
+from flask import render_template, Blueprint, request, redirect, url_for, flash
 
 from app.services import switch_db as db
 
@@ -36,3 +36,46 @@ def detail(hostname):
                     print("Set port {} to AUTH".format(port.idx()))
         redirect("/switch/{}".format(hostname))
     return render_template('detail.html', device=device)
+
+
+@mod.route("/switch/<hostname>/vlan/<id>/edit", methods=['POST'])
+def vlan_edit(hostname, id):
+    device = db.get_or_404(hostname)
+    if request.method == "POST":
+        vlan_id = request.form.get('VLAN_ID_TO_RENAME', None)
+        vlan_name = request.form.get('VLAN_NEW_NAME', None)
+        if vlan_id == id and vlan_name:
+            try:
+                device.vlan_rename(int(vlan_id), vlan_name)
+            except:
+                flash("rename failed")
+    return redirect(url_for('.detail', hostname=hostname))
+
+
+@mod.route("/switch/<hostname>/vlan/<id>/delete", methods=['POST'])
+def vlan_delete(hostname, id):
+    device = db.get_or_404(hostname)
+    if request.method == "POST":
+        vlan_id = request.form.get('VLAN_ID_TO_REMOVE', None)
+        if vlan_id == id:
+            try:
+                device.vlan_remove(vlan_id)
+            except:
+                flash("remove failed")
+    return redirect(url_for('.detail', hostname=hostname))
+
+
+@mod.route("/switch/<hostname>/vlan/create", methods=['POST'])
+def vlan_create(hostname):
+    device = db.get_or_404(hostname)
+    if request.method == "POST":
+        vlan_name = request.form.get('VLAN_NAME', None)
+        vlan_id = request.form.get('VLAN_ID', None)
+        if vlan_name and vlan_id:
+            try:
+                device.vlan_create(vlan_id, vlan_name)
+            except:
+                flash("Failed to add VLAN")
+        else:
+            flash("Wrong input")
+    return redirect(url_for('.detail', hostname=hostname))

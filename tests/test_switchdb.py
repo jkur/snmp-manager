@@ -56,10 +56,11 @@ class Test_SwitchDB(TestCase):
         s.init_app(appmock)
         self.assertIsNotNone(s)
         device = s.all()[0]
-        self.assertEqual(len(device.vlans()), 3)
+        self.assertEqual(len(device.vlans()), 5)
         self.assertEqual(device.vlans()[0][1], "DEFAULT_VLAN")
         self.assertEqual(device.vlans()[1][1], "WLAN")
-        self.assertEqual(device.vlans()[2][1], "VOIP")
+        self.assertEqual(device.vlans()[2][1], "WLANGAST")
+        self.assertEqual(device.vlans()[3][1], "VOIP")
 
     def test_interface_alias(self):
         class AppMock():
@@ -72,7 +73,6 @@ class Test_SwitchDB(TestCase):
         device = s.all()[0]
         self.assertEqual(device.get_port(1).alias(), "UPLINK-s401")
 
-
     def test_vlan_edit(self):
         class AppMock():
             def __init__(self, conf):
@@ -83,9 +83,12 @@ class Test_SwitchDB(TestCase):
         s.init_app(appmock)
         device = s.all()[0]
         self.assertEqual(device.get_port(1).alias(), "UPLINK-s401")
-
-        
-
+        device.vlan_create(78, 'TESTVLAN')
+        vlans = device.vlans()
+        self.assertIn((78, 'TESTVLAN'), vlans)
+        device.vlan_remove(78)
+        vlans = device.vlans()
+        self.assertNotIn((78, 'TESTVLAN'), vlans)
 
     #def test_portlist(self):
     #    s = SNMP_Device('switch-loft4-2')

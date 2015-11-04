@@ -1,10 +1,9 @@
 {% extends "base.html" %}
 
 {% block content %}
-      <form method="POST" name="portauth">
-
   <div class="row">
-    <div class="large-12 columns">
+    <br/>
+    <div class="large-6 columns">
       <table>
         <tr>
           <th>Hostname</th>
@@ -18,11 +17,68 @@
           <td>{{ device.model() }}</td>
           <td>{{ device.firmware() }}</td>
           <td>
+            <form method="POST" name="portauth">
             <select name="802.1x-enabled">
               <option value="1" {% if device.port_auth_enabled()  %}selected{% endif %}>Yes</option>
               <option value="2" {% if not device.port_auth_enabled() %}selected{% endif %}>No</option>
             </select>
           </td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="large-6 columns">
+      <table>
+        <tr>
+          <th>Radius Server</th>
+          <th>Port</th>
+        </tr>
+        {% for rip, rport in device.radius_info() %}
+        <tr>
+          <td>{{ rip }}</td><td>{{ rport }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+
+    <div class="large-12 columns">
+      <table>
+        <tr>
+          <th>VLAN Name</th>
+          <th>VLAN ID</th>
+          <th tablespan="2" >Action</th>
+        </tr>
+        {% for vlan in device.vlans() %}
+          <tr>
+            <td>
+              <form action="/switch/{{ device.hostname }}/vlan/{{ vlan.0 }}/edit" method="POST">
+              <input type="hidden" value="{{ vlan.0 }}" name="VLAN_ID_TO_RENAME">
+              <input type="text" value="{{ vlan.1 }}" name="VLAN_NEW_NAME">
+            </td>
+            <td>
+              {{ vlan.0 }}
+            </td>
+            <td>
+              <form action="/switch/{{ device.hostname }}/vlan/{{ vlan.0 }}/edit" method="POST">
+                <button class="fi-pencil radius tiny" type="submit">
+              </form>
+            </td>
+            <td>
+              <form action="/switch/{{ device.hostname }}/vlan/{{ vlan.0 }}/delete" method="POST">
+                <input type="hidden" name="VLAN_ID_TO_REMOVE" value="{{ vlan.0 }}">
+                <button class="fi-trash alert radius tiny" type="submit">
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+        <tr>
+          <form action="/switch/{{ device.hostname }}/vlan/create" method="POST">
+            <td><input type="text" name="VLAN_NAME"></td>
+            <td><input type="number" name="VLAN_ID" min="1" max="200" step="1"></td>
+            <td tablespan="2">
+              <button class="fi-check expand success radius" value="99" type="submit">
+            </td>
+          </form>
         </tr>
       </table>
     </div>
