@@ -4,8 +4,10 @@
     <meta charset="utf-8" />
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="/static/css/foundation.css" />
+    <link rel="stylesheet" href="/static/css/normalize.css" />
+    <link rel="stylesheet" href="/static/css/foundation.min.css" />
     <link rel="stylesheet" href="/static/foundation-icons/foundation-icons.css" />
+    <link rel="stylesheet" href="/static/css/app.css" />
     <script src="/static/js/vendor/modernizr.js"></script>
 
 	{% block css %}
@@ -20,6 +22,11 @@
 	  {% block jsscript %}
 	    {# for in template extensions #}
       {% endblock jsscript %}
+    </script>
+    <script src="/static/js/vendor/jquery.js"></script>
+    <script src="/static/js/foundation.min.js"></script>
+    <script>
+      $(document).foundation();
     </script>
   </body>
 </html>

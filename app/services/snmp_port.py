@@ -2,13 +2,14 @@
 
 
 class SNMP_IFPort():
-    def __init__(self, idx, snmp_service):
+    def __init__(self, idx, snmp_service, device=None):
         self._snmp = snmp_service
         self._portidx = int(idx)
         self._portalias = ''
         self._portdescr = ''
         self._porttype = 0
         self._portstatus = 2  # down=2, up=1
+        self._device = device
         self._get_port_info()
 
     def _get_port_info(self):
@@ -16,6 +17,11 @@ class SNMP_IFPort():
         self._porttype = int(self._snmp.get('IF-MIB::ifType.{}'.format(self._portidx)).value)
         self._portstatus = int(self._snmp.get('.1.3.6.1.2.1.2.2.1.8.{}'.format(self._portidx)).value)
         self._portalias = self._snmp.get('IF-MIB::ifAlias.{}'.format(self._portidx)).value
+
+    def vlan_member(self):
+        if self.is_interface():
+            return self._device.get_port_membership(self._portidx)
+        return None
 
     def descr(self):
         return self._portdescr

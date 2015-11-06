@@ -79,3 +79,39 @@ def vlan_create(hostname):
         else:
             flash("Wrong input")
     return redirect(url_for('.detail', hostname=hostname))
+
+@mod.route("/vlan/all/vlan/create", methods=['POST'])
+def vlan_create_all():
+    if request.method == 'POST':
+        devices = db.all()
+        vlan_name = request.form.get('VLAN_NAME', None)
+        vlan_id = request.form.get('VLAN_ID', None)
+        for device in devices:
+            try:
+                device.vlan_create(vlan_id, vlan_name)
+            except:
+                flash("Failed to create vlan {} on {}".format(vlan_id, device.hostname()))
+        return redirect(url_for('.index'))
+
+
+@mod.route("/vlan/all/vlan/delete", methods=['POST'])
+def vlan_remove_all():
+    if request.method == 'POST':
+        devices = db.all()
+        vlan_id = request.form.get('VLAN_ID', None)
+        for device in devices:
+            try:
+                device.vlan_remove(vlan_id)
+            except:
+                flash("Failed to remove vlan {} on {}".format(vlan_id, device.hostname))
+        return redirect(url_for('.index'))
+
+
+@mod.route("/vlan/<hostname>")
+def vlan_member(hostname):
+    device = db.get_or_404(hostname)
+    interfaces = device.get_interfaces()
+    vlans = device.vlans()
+    interface_desc = []
+    interfaces = map(lambda x: (x.idx(), device.get_port_membership(x.idx())), interfaces)
+    return render_template('vlan.html', device=device, vlans=vlans, interfaces=interfaces)

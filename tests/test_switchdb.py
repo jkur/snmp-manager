@@ -90,6 +90,30 @@ class Test_SwitchDB(TestCase):
         vlans = device.vlans()
         self.assertNotIn((78, 'TESTVLAN'), vlans)
 
+    def test_vlan_tagged(self):
+        class AppMock():
+            def __init__(self, conf):
+                self.conf = conf
+                self.config = dict(SWITCHES={'switch-loft4-2': self.conf})
+        appmock = AppMock(self.confv3)
+        s = SwitchDB()
+        s.init_app(appmock)
+        device = s.all()[0]
+        self.assertEqual(device.get_port(1).alias(), "UPLINK-s401")
+        table = device.get_vlan_ports(15)
+        print("table: ", table)
+        self.assertEqual(' '.join(map(lambda x: "%02X" % x, table)), "8A 00 00 00 00 00 00 00 00 00 00 00 00")
+        self.assertTrue(device.port_has_vlan_tagged(1, 15))
+        self.assertTrue(device.port_has_vlan_tagged(1, 20))
+        self.assertTrue(device.port_has_vlan_tagged(1, 25))
+
+
+    def test_vlan_table(self):
+        s = "".join(map(chr, [0x8A]) )
+        table = ''.join(["%02X " % ord(x) for x in s]).strip()
+        print("bytestring", s)
+        self.assertEqual(table, "8A 00 00 00 00 00 00 00 00 00 00 00 00")
+
     #def test_portlist(self):
     #    s = SNMP_Device('switch-loft4-2')
     #    self.assertIsNotNone(s)

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="row full-width">
+    <br/>
+    <div class="large-6 columns">
+      <table>
+        <tr>
+          <th>Port</th>
+          {% for vlan in vlans %}
+          <th>{{ vlan.0 }} ( {{vlan.1}}) </th>
+          {% endfor %}
+        </tr>
+        {% for interface in interfaces %}
+          <tr>
+            <td>{{ interface.0 }}</td>
+            {% for vlan in vlans %}
+              <td>
+                {% for member in interface.1 %}
+                  {% if member.0 == vlan.0 %}
+                    <span class="label {% if member.1 == 'u' %}success {% endif %}{% if member.1 == 'f' %}alert {% endif %}">{{ member.1 }}</span>
+                  {% endif %}
+                {% endfor %}
+              </td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+    </div>
+  </div>
+{% endblock %}
+    
+{% block jsscript %}
+{% endblock %}

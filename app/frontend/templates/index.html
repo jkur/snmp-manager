@@ -1,19 +1,55 @@
 {% extends "base.html" %}
 {% block content %}
-<table>
-  <tr>
-    <th>Hostname</th>
-    <th>Model</th>
-    <th>Firmware</th>
-  </tr>
+  <div class="row full-width">
+    <div class="medium-12 columns">
+    <table>
+      <tr>
+        <th>Hostname</th>
+        <th>Model</th>
+        <th>Firmware</th>
+        <th>VLANs</th>
+      </tr>
   
-  {% for device in devices %}
-    <tr>
-      <td><a href="/switch/{{ device.hostname }}">{{ device.hostname }}</a></td>
-      <td>{{ device.model() }}</td>
-      <td>{{ device.firmware() }}</td>
-    </tr>
-  {% endfor %}
-</table>
+      {% for device in devices %}
+        <tr>
+          <td><a href="/switch/{{ device.hostname }}">{{ device.hostname }}</a></td>
+          <td>{{ device.model() }}</td>
+          <td>{{ device.firmware() }}</td>
+          <td>
+            {% for vlan in device.vlans() %}
+              <span class="label success">{{ vlan.1 }} ({{vlan.0}})</span>
+            {% endfor %}
+          </td>
+        </tr>
+      {% endfor %}
+    </table>
+    </div>
+  </div>
 
+  <div class="row full-width">
+    <div class="medium-2 columns">Add VLAN to all switches</div>
+    <form action="/vlan/all/vlan/create" method="POST">
+      <div class="medium-1 columns">
+        <input type="text" name="VLAN_NAME">
+      </div>
+      <div class="medium-1 columns">
+        <input type="number" name="VLAN_ID" min="1" max="200" step="1" value="99">
+      </div>
+      <div class="medium-1 columns">
+        <button class="fi-check success radius tiny" type="submit">
+      </div>
+    </form>
+  </div>
+  <div class="row full-width">
+    <div class="medium-2 columns">Remove VLAN from all switches</div>
+    <form action="/vlan/all/vlan/delete" method="POST">
+      <div class="medium-1 columns">
+        <input type="number" name="VLAN_ID" min="1" max="200" step="1" value="99">
+      </div>
+      <div class="medium-1 columns">
+        <button class="fi-trash alert radius tiny"  type="submit">
+      </div>
+    </form>
+  </div>
+</div>
 {% endblock %}
