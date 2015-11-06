@@ -9,3 +9,4 @@ app/settings.cfg
 __MACOSX
 app/static/foundation-icon-font-3.zip
 app/static/foundation-icons/.fontcustom-data
+./hp_procurve_snmp.txt
