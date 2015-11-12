@@ -14,16 +14,11 @@ class Test_SwitchDB(TestCase):
                        'security_level': 'authPriv'}
 
     def test_snmp_service(self):
-        # version 2
-        s = SNMP_Service('switch-loft4-2', community='public', version=2)
-        self.assertIsNotNone(s)
         # version 3
         s = SNMP_Service('switch-loft4-2', **self.confv3)
         self.assertIsNotNone(s)
 
     def test_snmp_device(self):
-        s = SNMP_Device('switch-loft4-2', community='public', version=2)
-        self.assertIsNotNone(s)
         # v3
         s = SNMP_Device('switch-loft4-2', **self.confv3)
         self.assertIsNotNone(s)
@@ -39,7 +34,7 @@ class Test_SwitchDB(TestCase):
         self.assertIsNotNone(s)
         for i in s.all():
             print (i.hostname)
-        self.assertEqual( len(s.all()), 1)
+        self.assertEqual(len(s.all()), 1)
         self.assertEqual(s.get('switch-loft4-2').hostname, 'switch-loft4-2')
         snmpdev = s.get('switch-loft4-2')
         self.assertEqual(snmpdev.model().upper(), 'J9020A')
@@ -57,10 +52,11 @@ class Test_SwitchDB(TestCase):
         self.assertIsNotNone(s)
         device = s.all()[0]
         self.assertEqual(len(device.vlans()), 5)
-        self.assertEqual(device.vlans()[0][1], "DEFAULT_VLAN")
-        self.assertEqual(device.vlans()[1][1], "WLAN")
-        self.assertEqual(device.vlans()[2][1], "WLANGAST")
-        self.assertEqual(device.vlans()[3][1], "VOIP")
+        self.assertEqual(device.vlans()[0].name(), "DEFAULT_VLAN")
+        self.assertEqual(device.vlans()[1].name(), "test")
+        self.assertEqual(device.vlans()[2].name(), "WLAN")
+        self.assertEqual(device.vlans()[3].name(), "WLANGAST")
+        self.assertEqual(device.vlans()[4].name(), "VOIP")
 
     def test_interface_alias(self):
         class AppMock():
@@ -100,21 +96,20 @@ class Test_SwitchDB(TestCase):
         s.init_app(appmock)
         device = s.all()[0]
         self.assertEqual(device.get_port(1).alias(), "UPLINK-s401")
-        table = device.get_vlan_ports(15)
-        print("table: ", table)
-        self.assertEqual(' '.join(map(lambda x: "%02X" % x, table)), "8A 00 00 00 00 00 00 00 00 00 00 00 00")
-        self.assertTrue(device.port_has_vlan_tagged(1, 15))
-        self.assertTrue(device.port_has_vlan_tagged(1, 20))
-        self.assertTrue(device.port_has_vlan_tagged(1, 25))
-
+        untagged, tagged, forbidden = device.get_vlan(15).port_table()
+        print("table: ", untagged)
+        self.assertEqual(' '.join(map(lambda x: "%02X" % x, untagged)), "00 00 F0 00 00 00 00 00 00 00 00 00 00")
+        self.assertTrue(device.get_vlan(15).is_tagged(1))
+        self.assertTrue(device.get_vlan(20).is_tagged(1))
+        self.assertTrue(device.get_vlan(25).is_tagged(1))
 
     def test_vlan_table(self):
-        s = "".join(map(chr, [0x8A]) )
+        s = "".join(map(chr, [0x8A, 0,0,0,0,0,0,0,0,0,0,0,0]))
         table = ''.join(["%02X " % ord(x) for x in s]).strip()
         print("bytestring", s)
         self.assertEqual(table, "8A 00 00 00 00 00 00 00 00 00 00 00 00")
 
-    #def test_portlist(self):
+    # def test_portlist(self):
     #    s = SNMP_Device('switch-loft4-2')
     #    self.assertIsNotNone(s)
     #    ports = s.get_ports()

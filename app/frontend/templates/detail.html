@@ -51,21 +51,21 @@
         {% for vlan in device.vlans() %}
           <tr>
             <td>
-              <form action="/switch/{{ device.hostname }}/vlan/{{ vlan.0 }}/edit" method="POST">
-              <input type="hidden" value="{{ vlan.0 }}" name="VLAN_ID_TO_RENAME">
-              <input type="text" value="{{ vlan.1 }}" name="VLAN_NEW_NAME">
+              <form action="/switch/{{ device.hostname }}/vlan/{{ vlan.vid() }}/edit" method="POST">
+              <input type="hidden" value="{{ vlan.vid() }}" name="VLAN_ID_TO_RENAME">
+              <input type="text" value="{{ vlan.name() }}" name="VLAN_NEW_NAME">
             </td>
             <td>
-              {{ vlan.0 }}
+              {{ vlan.vid() }}
             </td>
             <td>
-              <form action="/switch/{{ device.hostname }}/vlan/{{ vlan.0 }}/edit" method="POST">
+              <form action="/switch/{{ device.hostname }}/vlan/{{ vlan.vid() }}/edit" method="POST">
                 <button class="fi-pencil radius tiny" type="submit">
               </form>
             </td>
             <td>
-              <form action="/switch/{{ device.hostname }}/vlan/{{ vlan.0 }}/delete" method="POST">
-                <input type="hidden" name="VLAN_ID_TO_REMOVE" value="{{ vlan.0 }}">
+              <form action="/switch/{{ device.hostname }}/vlan/{{ vlan.vid() }}/delete" method="POST">
+                <input type="hidden" name="VLAN_ID_TO_REMOVE" value="{{ vlan.vid() }}">
                 <button class="fi-trash alert radius tiny" type="submit">
               </form>
             </td>

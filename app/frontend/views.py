@@ -112,6 +112,4 @@ def vlan_member(hostname):
     device = db.get_or_404(hostname)
     interfaces = device.get_interfaces()
     vlans = device.vlans()
-    interface_desc = []
-    interfaces = map(lambda x: (x.idx(), device.get_port_membership(x.idx())), interfaces)
     return render_template('vlan.html', device=device, vlans=vlans, interfaces=interfaces)

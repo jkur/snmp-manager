@@ -17,7 +17,7 @@
           <td>{{ device.firmware() }}</td>
           <td>
             {% for vlan in device.vlans() %}
-              <span class="label success">{{ vlan.1 }} ({{vlan.0}})</span>
+              <span class="label success">{{ vlan }}</span>
             {% endfor %}
           </td>
         </tr>

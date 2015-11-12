@@ -8,19 +8,22 @@
         <tr>
           <th>Port</th>
           {% for vlan in vlans %}
-          <th>{{ vlan.0 }} ( {{vlan.1}}) </th>
+          <th>{{ vlan }}</th>
           {% endfor %}
         </tr>
         {% for interface in interfaces %}
           <tr>
-            <td>{{ interface.0 }}</td>
+            <td>{{ interface.idx() }}</td>
             {% for vlan in vlans %}
               <td>
-                {% for member in interface.1 %}
-                  {% if member.0 == vlan.0 %}
-                    <span class="label {% if member.1 == 'u' %}success {% endif %}{% if member.1 == 'f' %}alert {% endif %}">{{ member.1 }}</span>
-                  {% endif %}
-                {% endfor %}
+                <span class="port-select">
+                  <select>
+                      <option value="u" {% if vlan.is_untagged(interface.idx()) %}selected{% endif %}>untagged</option>
+                      <option value="t" {% if vlan.is_tagged(interface.idx()) %}selected{% endif %}>tagged</option>
+                      <option value="f" {% if vlan.is_forbidden(interface.idx()) %}selected{% endif %}>forbid</option>
+                      <option value="n" >no</option>
+                  </select>
+                </span>
               </td>
             {% endfor %}
           </tr>
