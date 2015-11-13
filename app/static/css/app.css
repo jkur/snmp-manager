@@ -5,6 +5,12 @@
 
 .port-select select {
     background: none;
+    width: 7em;
     //background-color: grey;
+}
+
+.markedChanged select{
+    background: url('/static/img/attention_icon.png') no-repeat right;
+    padding-right: 2px;
 }
 

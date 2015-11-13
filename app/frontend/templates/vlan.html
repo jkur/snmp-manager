@@ -16,8 +16,9 @@
             <td>{{ interface.idx() }}</td>
             {% for vlan in vlans %}
               <td>
-                <span class="port-select">
-                  <select>
+                {% set selectid = interface.idx()~'-'~vlan.vid() %}
+                <span class="port-select" id="{{ selectid }}" onchange="mark_changed('{{ selectid }}');">
+                  <select >
                       <option value="u" {% if vlan.is_untagged(interface.idx()) %}selected{% endif %}>untagged</option>
                       <option value="t" {% if vlan.is_tagged(interface.idx()) %}selected{% endif %}>tagged</option>
                       <option value="f" {% if vlan.is_forbidden(interface.idx()) %}selected{% endif %}>forbid</option>
@@ -33,4 +34,8 @@
 {% endblock %}
     
 {% block jsscript %}
+  function mark_changed(elem_id) {
+      var elem = document.getElementById(elem_id);
+      elem.className += " markedChanged";
+  }
 {% endblock %}
