@@ -51,12 +51,11 @@ class Test_SwitchDB(TestCase):
         s.init_app(appmock)
         self.assertIsNotNone(s)
         device = s.all()[0]
-        self.assertEqual(len(device.vlans()), 5)
+        self.assertEqual(len(device.vlans()), 4)
         self.assertEqual(device.vlans()[0].name(), "DEFAULT_VLAN")
-        self.assertEqual(device.vlans()[1].name(), "test")
-        self.assertEqual(device.vlans()[2].name(), "WLAN")
-        self.assertEqual(device.vlans()[3].name(), "WLANGAST")
-        self.assertEqual(device.vlans()[4].name(), "VOIP")
+        self.assertEqual(device.vlans()[1].name(), "WLAN")
+        self.assertEqual(device.vlans()[2].name(), "WLANGAST")
+        self.assertEqual(device.vlans()[3].name(), "VOIP")
 
     def test_interface_alias(self):
         class AppMock():

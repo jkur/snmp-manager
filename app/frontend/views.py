@@ -80,6 +80,7 @@ def vlan_create(hostname):
             flash("Wrong input")
     return redirect(url_for('.detail', hostname=hostname))
 
+
 @mod.route("/vlan/all/vlan/create", methods=['POST'])
 def vlan_create_all():
     if request.method == 'POST':

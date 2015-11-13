@@ -27,10 +27,10 @@ class Test_Vlan(TestCase):
     def test_snmp_vlans(self):
         device = self.device
         self.assertEqual(len(device.vlans()), 4)
-        self.assertEqual(device.vlans()[0][1], "DEFAULT_VLAN")
-        self.assertEqual(device.vlans()[1][1], "WLAN")
-        self.assertEqual(device.vlans()[2][1], "WLANGAST")
-        self.assertEqual(device.vlans()[3][1], "VOIP")
+        self.assertEqual(device.vlans()[0].name(), "DEFAULT_VLAN")
+        self.assertEqual(device.vlans()[1].name(), "WLAN")
+        self.assertEqual(device.vlans()[2].name(), "WLANGAST")
+        self.assertEqual(device.vlans()[3].name(), "VOIP")
 
     def test_vlan_portmembership(self):
         device = self.device
@@ -45,10 +45,11 @@ class Test_Vlan(TestCase):
         self.assertIn((20, 'WLANGAST'), vlist)
         vlan_list_test = [(1, 'DEFAULT_VLAN'), (15, 'WLAN'), (20, 'WLANGAST'), (25, 'VOIP')]
         # iterator
-        self.assertEqual(vlan_list_test, vlist)
+        for test_vlan, vlist_item in zip(vlan_list_test, vlist):
+            self.assertEqual(test_vlan, vlist_item)
         for vlan in vlist:
             print ("Type: ", type(vlan))
-            self.assertIs(type(vlan[0]), int)
+            self.assertIs(type(vlan.vid()), int)
         self.assertEqual(len(vlist), 4)
 
     def test_create_delete_vlan(self):
