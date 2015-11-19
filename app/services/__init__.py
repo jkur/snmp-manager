@@ -50,8 +50,10 @@ class SNMP_Service():
             ret = self.session.get_next(ret.oid)
         return ret
 
-    def getall(self, oid):
+    def getall(self, oid, filter_by_value=False):
         ret = self.session.walk(oid)
+        if filter_by_value:
+            return [lambda x: x.value for x in ret]
         return ret
 
     def set(self, oid, value, snmp_type=None):

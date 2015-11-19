@@ -113,4 +113,17 @@ def vlan_member(hostname):
     device = db.get_or_404(hostname)
     interfaces = device.get_interfaces()
     vlans = device.vlans()
-    return render_template('vlan.html', device=device, vlans=vlans, interfaces=interfaces)
+    return render_template('vlan.html', hostname=hostname, device=device, vlans=vlans, interfaces=interfaces)
+
+
+@mod.route("/vlan/<hostname>/savetable", methods=["POST"])
+def vlan_member_save(hostname):
+    if request.method == 'POST':
+        device = db.get_or_404(hostname)
+        # sanity checks
+        # len(form) == num_of_ports * num_of_vids
+        interfaces = device.get_interfaces()
+        vlans = device.vlans()
+        num_of_vids = len(vlans)
+        num_of_ports = len(vlans)
+    return redirect(url_for('.vlan_member', hostname=hostname))

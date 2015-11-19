@@ -4,8 +4,80 @@ from easysnmp import EasySNMPError
 import math
 
 
-class SNMP_Portlist():
+class SNMP_Entity_List(object):
+    # make this the super class for portlist and vlanlist
     pass
+
+
+class SNMP_Portlist():
+    def __init__(self, snmp_service):
+        self._snmp = snmp_service
+        self._ports = None
+        self._port_mapping = None
+        self._trunks = None
+        self._trunks_start = 0
+        self._trunks_stop = 0
+        self._first_trunk_group = 0
+        self._last_trunk_group = 0
+        self._ports_dirty = True
+        self._refresh()
+
+    def _refresh(self):
+        self._ports = []
+        # IF-MIB::ifIndex
+        ifidx = [int(x.value) for x in self._snmp.getall('1.3.6.1.2.1.2.2.1.1')]
+        # IF-MIB::ifType
+        iftype = [int(x.value) for x in self._snmp.getall('1.3.6.1.2.1.2.2.1.3')]
+        self._trunks = [x for x in zip(ifidx, iftype) if x[1] == 54 or x[1] == 161]
+        if len(self._trunks):
+            self._trunks_start = min(self._trunks, key=lambda x: x[0])
+            self._trunks_stop = max(self._trunks, key=lambda x: x[0])
+            # trunk_numbers = filter(lambda x: x > 0, self._snmp.getall('CONFIG-MIB::hpSwitchPortTrunkGroup', filter_by_value=True))
+            # CONFIG-MIB::hpSwitchPortTrunkGroup
+            trunk_numbers = [int(x.value) for x in self._snmp.getall('1.3.6.1.4.1.11.2.14.11.5.1.7.1.3.1.1.8') if int(x.value) > 0]
+            self._first_trunk_group = min(trunk_numbers)
+            self._last_trunk_group = min(trunk_numbers)
+
+        # self._ports = [SNMP_IFPort(idx.value, self._snmp, self) for idx in self._snmp.getall('.1.3.6.1.2.1.2.2.1.1')]
+        self._ports = [SNMP_IFPort(idx, self._snmp, self, iftype=iftype) for (idx, iftype) in zip(ifidx, iftype)]
+        self._ports_dirty = False
+
+    def port(self, idx):
+        for port in self._ports:
+            if port.idx() == idx:
+                return port
+        raise IndexError
+
+    def trunk(self, idx):
+        return self.port(idx + self._trunks_start)
+
+    def __repr__(self):
+        return str(self._ports)
+
+    def __len__(self):
+        return len(self._ports)
+
+    def __contains__(self, a):
+        for port in self._ports:
+            if port == a:
+                return True
+        return False
+        # return a in self._vlans
+
+    def __getitem__(self, idx):
+        return self._ports[idx]
+
+    def __next__(self):
+        if self._iteridx != len(self._ports):
+            r = self._ports[self._iteridx]
+            self._iteridx += 1
+            return r
+        else:
+            raise StopIteration()
+
+    def __iter__(self):
+        self._iteridx = 0
+        return self
 
 
 # Factory
@@ -271,12 +343,13 @@ class SNMP_Device():
         self._portlist_dirty = True
         self._snmp = SNMP_Service(self.hostname, **kwargs)
         self._vlan = SNMP_Vlanlist(self._snmp)
+        self._ports = SNMP_Portlist(self._snmp)
 
     def get_sysdescr(self):
         return self._snmp.sys_descr().value
 
     def get_number_ports(self):
-        return self._snmp.num_ports().value
+        return len(self._ports)
 
     def model(self):
         return self._snmp.getfirst('ENTITY-MIB::entPhysicalModelName.1').value
@@ -292,17 +365,18 @@ class SNMP_Device():
     def vlans(self):
         return self._vlan
 
+    def ports(self):
+        return self._ports
+
     def vlan_create(self, id, name):
         self._vlan.vlan_create(id, name)
         self._portlist_dirty = True
 
     def vlan_remove(self, id):
-        #self._snmp.set('Q-BRIDGE-MIB::dot1qVlanStaticRowStatus.{}'.format(id), 6)  # destroy
         self._vlan.vlan_remove(id)
         self._portlist_dirty = True
 
     def vlan_rename(self, id, name):
-        self._snmp.set('Q-BRIDGE-MIB::dot1qVlanStaticName.{}'.format(id), name)  # set name
         self._vlan.vlan_rename(id, name)
         self._portlist_dirty = True
 
@@ -328,7 +402,7 @@ class SNMP_Device():
         return self._portlist
 
     def get_interfaces(self):
-        return filter(lambda x: x.is_interface(), self.get_ports())
+        return filter(lambda x: x.is_interface() or x.is_trunk(), self.get_ports())
 
     def get_vlan(self, vlan_id):
         return self._vlan.get_vlan(vlan_id)

@@ -2,7 +2,7 @@
 
 
 class SNMP_IFPort():
-    def __init__(self, idx, snmp_service, device=None):
+    def __init__(self, idx, snmp_service, device=None, iftype=None, ifalias=None, ifstatus=None, ifdesc=None):
         self._snmp = snmp_service
         self._portidx = int(idx)
         self._portalias = ''
@@ -10,13 +10,40 @@ class SNMP_IFPort():
         self._porttype = 0
         self._portstatus = 2  # down=2, up=1
         self._device = device
+        self._trunk_group = 0
+        self._dirty_flag = True
+        if iftype:
+            self._porttype = iftype
+            self._dirty_flag = False
+        if ifalias:
+            self._portalias = ifalias
+            self._dirty_flag = False
+        if ifstatus:
+            self._portstatus = int(ifstatus)
+            self._dirty_flag = False
+        if ifdesc:
+            self._portdesc = ifdesc
+            self._dirty_flag = False
         self._get_port_info()
 
     def _get_port_info(self):
-        self._portdescr = self._snmp.get('.1.3.6.1.2.1.2.2.1.2.{}'.format(self._portidx)).value
-        self._porttype = int(self._snmp.get('IF-MIB::ifType.{}'.format(self._portidx)).value)
-        self._portstatus = int(self._snmp.get('.1.3.6.1.2.1.2.2.1.8.{}'.format(self._portidx)).value)
-        self._portalias = self._snmp.get('IF-MIB::ifAlias.{}'.format(self._portidx)).value
+        # IF-MIB::ifDescr
+        if self._dirty_flag:
+            self._portdescr = self._snmp.get('.1.3.6.1.2.1.2.2.1.2.{}'.format(self._portidx)).value
+            # IF-MIB::ifType
+            self._porttype = int(self._snmp.get('1.3.6.1.2.1.2.2.1.3.{}'.format(self._portidx)).value)
+            # IF-MIB::ifOperStatus
+            self._portstatus = int(self._snmp.get('.1.3.6.1.2.1.2.2.1.8.{}'.format(self._portidx)).value)
+            # IF-MIB::ifAlias
+            self._portalias = self._snmp.get('1.3.6.1.2.1.31.1.1.1.18.{}'.format(self._portidx)).value
+        # check if we are part of some trunk
+        #try:
+        #    CONFIG-MIB::hpSwitchPortTrunkGroup
+        #    self._trunk_group = int(self._snmp.get('1.3.6.1.4.1.11.2.14.11.5.1.7.1.3.1.1.8.{}'.format(self._portidx)).value)
+        #except:
+        #    pass
+        # max(CONFIG-MIB::hpSwitchPortTrunkGroup)
+        # first propMultiplexor(54) or ieee8023adLag(161)
 
     def vlan_member(self):
         if self.is_interface():
@@ -29,6 +56,12 @@ class SNMP_IFPort():
     def alias(self):
         return self._portalias
 
+    def alias_or_descr(self):
+        ret = self._portalias
+        if not len(ret):
+            ret = self._portdescr
+        return ret
+
     def is_up(self):
         return self._portstatus == 1
 
@@ -36,36 +69,55 @@ class SNMP_IFPort():
         return self._porttype == 53  # propvirtual
 
     def is_interface(self):
-        if int(self._snmp.get('IF-MIB::ifAdminStatus.{}'.format(self._portidx)).value) != 1:
+        # IF-MIB::ifAdminStatus
+        if int(self._snmp.get('1.3.6.1.2.1.2.2.1.7.{}'.format(self._portidx)).value) != 1:
             return False
         return self._porttype == 6   # ethernetCsmacd
 
     def is_loopback(self):
         return self._porttype == 24   # ethernetCsmacd
 
+    def is_part_of_trunk(self):
+        if self._trunk_group > 0:
+            pass
+
+    def is_part_of_lacp(self):
+        if self._trunk_group > 0:
+            pass
+
     def is_trunk(self):
         return self._porttype == 54  # propMultiplexor
+
+    def is_lacp(self):
+        return self._porttype == 161  # ieee8023adLag
 
     def idx(self):
         return self._portidx
 
     def has_port_auth(self):
-        return int(self._snmp.get('HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xPaePortAuth.{}'.format(self._portidx)).value) == 1
+        # HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xPaePortAuth
+        return int(self._snmp.get('.{}'.format(self._portidx)).value) == 1
 
     def set_port_auth(self, active, auth_vlan=None, unauth_vlan=None):
         if unauth_vlan is not None:
-            self._snmp.set('HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xAuthUnauthVid.{}'.format(self._portidx), unauth_vlan)
+            # HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xAuthUnauthVid
+            self._snmp.set('1.3.6.1.4.1.11.2.14.11.5.1.25.1.2.1.1.2.{}'.format(self._portidx), unauth_vlan)
         if auth_vlan is not None:
-            self._snmp.set('HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xAuthAuthVid.{}'.format(self._portidx), auth_vlan)
+            # HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xAuthAuthVid
+            self._snmp.set('1.3.6.1.4.1.11.2.14.11.5.1.25.1.2.1.1.1.{}'.format(self._portidx), auth_vlan)
         if active:
-            self._snmp.set('HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xPaePortAuth.{}'.format(self._portidx), 1)
+            # HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xPaePortAuth
+            self._snmp.set('1.3.6.1.4.1.11.2.14.11.5.1.25.1.1.1.1.1.{}'.format(self._portidx), 1)
         else:
-            self._snmp.set('HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xPaePortAuth.{}'.format(self._portidx), 2)
+            # HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xPaePortAuth
+            self._snmp.set('1.3.6.1.4.1.11.2.14.11.5.1.25.1.1.1.1.1.{}'.format(self._portidx), 2)
 
     def port_access_info(self):
         ret = dict(
             enabled=self.has_port_auth(),
-            auth_vlan=int(self._snmp.get('HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xAuthAuthVid.{}'.format(self._portidx)).value),
-            unauth_vlan=int(self._snmp.get('HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xAuthUnauthVid.{}'.format(self._portidx)).value)
+            # HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xAuthAuthVid
+            auth_vlan=int(self._snmp.get('1.3.6.1.4.1.11.2.14.11.5.1.25.1.2.1.1.1.{}'.format(self._portidx)).value),
+            # HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xAuthUnauthVid
+            unauth_vlan=int(self._snmp.get('1.3.6.1.4.1.11.2.14.11.5.1.25.1.2.1.1.2.{}'.format(self._portidx)).value)
             )
         return ret
