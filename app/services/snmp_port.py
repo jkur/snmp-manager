@@ -2,7 +2,7 @@
 
 
 class SNMP_IFPort():
-    def __init__(self, idx, snmp_service, device=None, iftype=None, ifalias=None, ifstatus=None, ifdesc=None):
+    def __init__(self, idx, snmp_service, device=None):
         self._snmp = snmp_service
         self._portidx = int(idx)
         self._portalias = ''
@@ -12,23 +12,11 @@ class SNMP_IFPort():
         self._device = device
         self._trunk_group = 0
         self._dirty_flag = True
-        if iftype:
-            self._porttype = iftype
-            self._dirty_flag = False
-        if ifalias:
-            self._portalias = ifalias
-            self._dirty_flag = False
-        if ifstatus:
-            self._portstatus = int(ifstatus)
-            self._dirty_flag = False
-        if ifdesc:
-            self._portdesc = ifdesc
-            self._dirty_flag = False
         self._get_port_info()
 
     def _get_port_info(self):
-        # IF-MIB::ifDescr
         if self._dirty_flag:
+            # IF-MIB::ifDescr
             self._portdescr = self._snmp.get('.1.3.6.1.2.1.2.2.1.2.{}'.format(self._portidx)).value
             # IF-MIB::ifType
             self._porttype = int(self._snmp.get('1.3.6.1.2.1.2.2.1.3.{}'.format(self._portidx)).value)
@@ -96,7 +84,7 @@ class SNMP_IFPort():
 
     def has_port_auth(self):
         # HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xPaePortAuth
-        return int(self._snmp.get('.{}'.format(self._portidx)).value) == 1
+        return int(self._snmp.get('1.3.6.1.4.1.11.2.14.11.5.1.25.1.1.1.1.1.{}'.format(self._portidx)).value) == 1
 
     def set_port_auth(self, active, auth_vlan=None, unauth_vlan=None):
         if unauth_vlan is not None:

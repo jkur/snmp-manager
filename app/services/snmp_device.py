@@ -39,7 +39,7 @@ class SNMP_Portlist():
             self._last_trunk_group = min(trunk_numbers)
 
         # self._ports = [SNMP_IFPort(idx.value, self._snmp, self) for idx in self._snmp.getall('.1.3.6.1.2.1.2.2.1.1')]
-        self._ports = [SNMP_IFPort(idx, self._snmp, self, iftype=iftype) for (idx, iftype) in zip(ifidx, iftype)]
+        self._ports = [SNMP_IFPort(idx, self._snmp, self) for idx in ifidx]
         self._ports_dirty = False
 
     def port(self, idx):
