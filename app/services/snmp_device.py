@@ -1,4 +1,4 @@
-from .snmp_port import SNMP_IFPort
+from .snmp_port import SNMP_IFPort, SNMP_TrunkPort
 from app.services import SNMP_Service
 from easysnmp import EasySNMPError
 import math
@@ -23,23 +23,46 @@ class SNMP_Portlist():
         self._refresh()
 
     def _refresh(self):
-        self._ports = []
+
         # IF-MIB::ifIndex
         ifidx = [int(x.value) for x in self._snmp.getall('1.3.6.1.2.1.2.2.1.1')]
         # IF-MIB::ifType
         iftype = [int(x.value) for x in self._snmp.getall('1.3.6.1.2.1.2.2.1.3')]
-        self._trunks = [x for x in zip(ifidx, iftype) if x[1] == 54 or x[1] == 161]
-        if len(self._trunks):
-            self._trunks_start = min(self._trunks, key=lambda x: x[0])
-            self._trunks_stop = max(self._trunks, key=lambda x: x[0])
-            # trunk_numbers = filter(lambda x: x > 0, self._snmp.getall('CONFIG-MIB::hpSwitchPortTrunkGroup', filter_by_value=True))
-            # CONFIG-MIB::hpSwitchPortTrunkGroup
-            trunk_numbers = [int(x.value) for x in self._snmp.getall('1.3.6.1.4.1.11.2.14.11.5.1.7.1.3.1.1.8') if int(x.value) > 0]
-            self._first_trunk_group = min(trunk_numbers)
-            self._last_trunk_group = min(trunk_numbers)
 
-        # self._ports = [SNMP_IFPort(idx.value, self._snmp, self) for idx in self._snmp.getall('.1.3.6.1.2.1.2.2.1.1')]
-        self._ports = [SNMP_IFPort(idx, self._snmp, self) for idx in ifidx]
+
+        # liste aller trunks (idx)
+        if_trunk = [x[0] for x in zip(ifidx, iftype) if x[1] == 54 or x[1] == 161]
+        # liste der echten ports (idx) ethernet
+        if_ether = [x[0] for x in zip(ifidx, iftype) if x[1] == 6]
+
+        # remove trunk interfaces from list of ethnernet interfaces
+        if_trunk_members = []
+        if_interfaces = []
+        for idx in if_ether:
+            # CONFIG-MIB::hpSwitchPortTrunkGroup
+            t = int(self._snmp.get('1.3.6.1.4.1.11.2.14.11.5.1.7.1.3.1.1.8.{}'.format(idx)).value)
+            if t > 0:
+                if_trunk_members.append((idx, t))
+            else:
+                if_interfaces.append(idx)
+
+        ## now we can create the IFPort
+        self._ports = [SNMP_IFPort(idx, self._snmp, self) for idx in if_interfaces]
+
+
+        ## now create TrunkPorts
+        # group by trunk_group
+        trunks = {}
+        for idx, trunkgroup in if_trunk_members:
+            if trunkgroup in trunks:
+                trunks[int(trunkgroup)].append(idx)
+            else:
+                trunks.update({int(trunkgroup): [idx]})
+
+        # if len(list(trunks)) == len(if_trunk):
+        trunkports = [SNMP_TrunkPort(idx, self._snmp, self, tm) for tm, idx in zip(list(trunks.values()), if_trunk)]
+
+        self._ports += trunkports
         self._ports_dirty = False
 
     def port(self, idx):
@@ -339,8 +362,6 @@ class SNMP_Vlanlist():
 class SNMP_Device():
     def __init__(self, hostname, **kwargs):
         self.hostname = hostname
-        self._portlist = None
-        self._portlist_dirty = True
         self._snmp = SNMP_Service(self.hostname, **kwargs)
         self._vlan = SNMP_Vlanlist(self._snmp)
         self._ports = SNMP_Portlist(self._snmp)
@@ -370,15 +391,12 @@ class SNMP_Device():
 
     def vlan_create(self, id, name):
         self._vlan.vlan_create(id, name)
-        self._portlist_dirty = True
 
     def vlan_remove(self, id):
         self._vlan.vlan_remove(id)
-        self._portlist_dirty = True
 
     def vlan_rename(self, id, name):
         self._vlan.vlan_rename(id, name)
-        self._portlist_dirty = True
 
     def get_port_membership(self, portidx):
         return self._vlan.get_port_membership(portidx)
@@ -396,21 +414,16 @@ class SNMP_Device():
             self._snmp.set('IEEE8021-PAE-MIB::dot1xPaeSystemAuthControl.0', 2)
 
     def get_ports(self):
-        if self._portlist_dirty:
-            self._portlist = [SNMP_IFPort(idx.value, self._snmp, self) for idx in self._snmp.getall('.1.3.6.1.2.1.2.2.1.1')]
-            self._portlist_dirty = False
-        return self._portlist
+        return self._ports
 
     def get_interfaces(self):
-        return filter(lambda x: x.is_interface() or x.is_trunk(), self.get_ports())
+        return [x for x in self._ports if x.is_interface()]
 
     def get_vlan(self, vlan_id):
         return self._vlan.get_vlan(vlan_id)
 
     def get_port(self, idx):
-        if self._portlist_dirty:
-            self.get_ports()
-        for port in self._portlist:
+        for port in self._ports:
             if port.idx() == idx:
                 return port
         return None

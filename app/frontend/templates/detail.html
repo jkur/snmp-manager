@@ -85,10 +85,33 @@
   </div>
   <div class="row">
     <div class="large-12 columns">
+      <table>
+        <th>Port</th>
+        <th>Members</th>
+      {% for port in device.get_ports() %}
+        {% if port.is_trunk() or port.is_lacp()%}
+          <tr>
+            <td>{{ port.descr() }} ({{ port.alias() }})</td>
+            <td>
+              {% for member in port.members() %}
+                <span class="label">
+                  {{ member.descr() }} {{ member.alias() }}
+                </span>
+              {% endfor %}
+            </td>
+          </tr>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+
+  
+  <div class="row">
+    <div class="large-12 columns">
       <p>
         <input type="hidden" name="hostname" value="{{ device.hostname }}" />
       {% for port in device.get_ports() %}
-        {% if port.idx() is odd and port.is_interface() %}
+        {% if port.idx() is odd and (port.is_interface() or port.is_trunk() or port.is_lacp())%}
           <span class="{% if port.is_up() %}success{% endif %} label">
             {{ port.descr() }}<br/>
             <input type="checkbox" id="port-{{ port.idx() }}"
@@ -99,14 +122,15 @@
             <input type="hidden" name="port-auth-{{ port.idx() }}"
                    id="port-auth-{{ port.idx() }}" {% if port.has_port_auth() %} value="true" {% else %} value="false" {% endif %} />
                    <br/>
-            {{ port.alias() }}
+                   {% set partof=port.is_part_of() %}
+                   {{ port.alias() }}&nbsp;{% if  partof > 0 %}Trunk: {{ partof }}{% endif %}
           </span>
         {% endif %}
       {% endfor %}
       <br/>
       <br/>
       {% for port in device.get_ports() %}
-        {% if port.idx() is even and port.is_interface() %}
+        {% if port.idx() is even and (port.is_interface() or port.is_trunk() or port.is_lacp())%}
           <span class="{% if port.is_up() %}success{% endif %} label">
             {{ port.descr() }}<br/>
             <input type="checkbox"
@@ -117,7 +141,8 @@
                    name="port-auth-{{ port.idx() }}"
                    id="port-auth-{{ port.idx() }}" {% if port.has_port_auth() %} value="true" {% else %} value="false" {% endif %} />
                    <br/>
-           {{ port.alias() }}
+                   {% set partof=port.is_part_of() %}
+                   {{ port.alias() }}&nbsp;{% if  partof > 0 %}Trunk: {{ partof }}{% endif %}
           </span>
         {% endif %}
       {% endfor %}

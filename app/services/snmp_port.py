@@ -1,7 +1,7 @@
 # coding: utf-8
 
 
-class SNMP_IFPort():
+class SNMP_IFPort(object):
     def __init__(self, idx, snmp_service, device=None):
         self._snmp = snmp_service
         self._portidx = int(idx)
@@ -25,11 +25,11 @@ class SNMP_IFPort():
             # IF-MIB::ifAlias
             self._portalias = self._snmp.get('1.3.6.1.2.1.31.1.1.1.18.{}'.format(self._portidx)).value
         # check if we are part of some trunk
-        #try:
-        #    CONFIG-MIB::hpSwitchPortTrunkGroup
-        #    self._trunk_group = int(self._snmp.get('1.3.6.1.4.1.11.2.14.11.5.1.7.1.3.1.1.8.{}'.format(self._portidx)).value)
-        #except:
-        #    pass
+        try:
+            # CONFIG-MIB::hpSwitchPortTrunkGroup
+            self._trunk_group = int(self._snmp.get('1.3.6.1.4.1.11.2.14.11.5.1.7.1.3.1.1.8.{}'.format(self._portidx)).value)
+        except:
+            pass
         # max(CONFIG-MIB::hpSwitchPortTrunkGroup)
         # first propMultiplexor(54) or ieee8023adLag(161)
 
@@ -65,6 +65,9 @@ class SNMP_IFPort():
     def is_loopback(self):
         return self._porttype == 24   # ethernetCsmacd
 
+    def is_part_of(self):
+        return self._trunk_group
+
     def is_part_of_trunk(self):
         if self._trunk_group > 0:
             pass
@@ -84,7 +87,11 @@ class SNMP_IFPort():
 
     def has_port_auth(self):
         # HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xPaePortAuth
-        return int(self._snmp.get('1.3.6.1.4.1.11.2.14.11.5.1.25.1.1.1.1.1.{}'.format(self._portidx)).value) == 1
+        try:
+            result = self._snmp.get('1.3.6.1.4.1.11.2.14.11.5.1.25.1.1.1.1.1.{}'.format(self._portidx))
+            return int(result.value) == 1
+        except:
+            return False
 
     def set_port_auth(self, active, auth_vlan=None, unauth_vlan=None):
         if unauth_vlan is not None:
@@ -109,3 +116,12 @@ class SNMP_IFPort():
             unauth_vlan=int(self._snmp.get('1.3.6.1.4.1.11.2.14.11.5.1.25.1.2.1.1.2.{}'.format(self._portidx)).value)
             )
         return ret
+
+
+class SNMP_TrunkPort(SNMP_IFPort):
+    def __init__(self, idx, snmp_service, device=None, members=[]):
+        self._members = [SNMP_IFPort(x, snmp_service, device) for x in members]
+        super().__init__(idx, snmp_service, device)
+
+    def members(self):
+        return self._members
