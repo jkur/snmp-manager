@@ -127,3 +127,11 @@ def vlan_member_save(hostname):
         num_of_vids = len(vlans)
         num_of_ports = len(vlans)
     return redirect(url_for('.vlan_member', hostname=hostname))
+
+
+@mod.route("/port/<hostname>/<int:idx>")
+def port_detail(hostname, idx):
+    device = db.get_or_404(hostname)
+    vlans = device.vlans()
+    port = device.get_port(idx)
+    return render_template('port.html', hostname=hostname, device=device, vlans=vlans, port=port)

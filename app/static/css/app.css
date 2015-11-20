@@ -14,3 +14,7 @@
     padding-right: 2px;
 }
 
+.label a {
+    color: #ffffff;
+    text-decoration: underline;
+}

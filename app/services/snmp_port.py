@@ -117,6 +117,16 @@ class SNMP_IFPort(object):
             )
         return ret
 
+    def get_macs(self):
+        allmacs = self._snmp.getall('1.3.6.1.2.1.17.4.3.1.2')
+        mac_on_port = []
+        for mac in allmacs:
+            if int(mac.value) == self._portidx:
+                oid = '1.3.6.1.2.1.17.4.3.1.1.'+mac.oid_index
+                hexstring = ':'.join(["%02X" % ord(x) for x in self._snmp.get(oid).value]).strip()
+                mac_on_port.append(hexstring)
+        return mac_on_port
+
 
 class SNMP_TrunkPort(SNMP_IFPort):
     def __init__(self, idx, snmp_service, device=None, members=[]):

@@ -423,7 +423,4 @@ class SNMP_Device():
         return self._vlan.get_vlan(vlan_id)
 
     def get_port(self, idx):
-        for port in self._ports:
-            if port.idx() == idx:
-                return port
-        return None
+        return self._ports.port(idx)

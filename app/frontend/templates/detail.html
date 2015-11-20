@@ -83,18 +83,19 @@
       </table>
     </div>
   </div>
-  <div class="row">
-    <div class="large-12 columns">
-      <table>
-        <th>Port</th>
-        <th>Members</th>
+  <div class="large-12 columns">
+    <table>
+      <th>Port</th>
+      <th>Type</th>
+      <th>Members</th>
       {% for port in device.get_ports() %}
         {% if port.is_trunk() or port.is_lacp()%}
           <tr>
-            <td>{{ port.descr() }} ({{ port.alias() }})</td>
+            <td>{{ port.descr() }} {% if port.alias()!='' %}({{ port.alias() }}){% endif %}</td>
+            <td>{% if port.is_trunk() %}Trunk{% else %}LACP{% endif %}</td>
             <td>
               {% for member in port.members() %}
-                <span class="label">
+                <span class="label {% if member.is_up() %}success{% endif %}">
                   {{ member.descr() }} {{ member.alias() }}
                 </span>
               {% endfor %}
@@ -102,18 +103,16 @@
           </tr>
         {% endif %}
       {% endfor %}
-    </div>
   </div>
 
   
-  <div class="row">
-    <div class="large-12 columns">
-      <p>
-        <input type="hidden" name="hostname" value="{{ device.hostname }}" />
+  <div class="large-12 columns">
+    <p>
+      <input type="hidden" name="hostname" value="{{ device.hostname }}" />
       {% for port in device.get_ports() %}
-        {% if port.idx() is odd and (port.is_interface() or port.is_trunk() or port.is_lacp())%}
+        {% if port.idx() is odd and port.is_interface() %}
           <span class="{% if port.is_up() %}success{% endif %} label">
-            {{ port.descr() }}<br/>
+            <a href="/port/{{ device.hostname }}/{{ port.idx() }}">{{ port.descr() }}</a><br/>
             <input type="checkbox" id="port-{{ port.idx() }}"
                    onChange="toggle_port_auth({{ port.idx() }});"
                    name="port-{{ port.idx() }}"
@@ -130,9 +129,9 @@
       <br/>
       <br/>
       {% for port in device.get_ports() %}
-        {% if port.idx() is even and (port.is_interface() or port.is_trunk() or port.is_lacp())%}
+        {% if port.idx() is even and port.is_interface() %}
           <span class="{% if port.is_up() %}success{% endif %} label">
-            {{ port.descr() }}<br/>
+            <a href="/port/{{ device.hostname }}/{{ port.idx() }}">{{ port.descr() }}</a><br/>
             <input type="checkbox"
                    id="port-{{ port.idx() }}"
                    onChange="toggle_port_auth({{ port.idx() }});"
@@ -148,9 +147,9 @@
       {% endfor %}
       </p>
       <input class="button" type="submit" />
-      </form>
-      </div>
-      </div>
+  </form>
+  </div>
+  
 {% endblock %}
     
 {% block jsscript %}

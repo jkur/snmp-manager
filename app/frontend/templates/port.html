@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="row full-width">
+    <br/>
+    <div class="large-12 columns">
+      <table>
+        <tr>
+        <th>Port idx</th>
+        <th>Port desc</th>
+        <th>Port alias</th>
+        <th>Macs</th>
+        </tr>
+        <tr>
+          <td>
+            <span class="label{% if port.is_up() %} success{% endif %}">
+              {{ port.idx() }}
+            </span>
+          </td>
+          <td>{{ port.descr() }}</td>
+          <td>{{ port.alias() }}</td>
+          <td>
+          {% for mac in port.get_macs() %}
+            {{ mac }}&nbsp;
+          {% endfor %}
+          </td>
+        </tr>
+      </table>
+    </div>
+  </div>
+  
+{% endblock %}
+    
+{% block jsscript %}
+{% endblock %}
