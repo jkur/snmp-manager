@@ -41,48 +41,6 @@
       </table>
     </div>
 
-    <div class="large-12 columns">
-      <table>
-        <tr>
-          <th>VLAN Name</th>
-          <th>VLAN ID</th>
-          <th tablespan="2" >Action</th>
-        </tr>
-        {% for vlan in device.vlans() %}
-          <tr>
-            <td>
-              <form action="/switch/{{ device.hostname }}/vlan/{{ vlan.vid() }}/edit" method="POST">
-              <input type="hidden" value="{{ vlan.vid() }}" name="VLAN_ID_TO_RENAME">
-              <input type="text" value="{{ vlan.name() }}" name="VLAN_NEW_NAME">
-            </td>
-            <td>
-              {{ vlan.vid() }}
-            </td>
-            <td>
-              <form action="/switch/{{ device.hostname }}/vlan/{{ vlan.vid() }}/edit" method="POST">
-                <button class="fi-pencil radius tiny" type="submit">
-              </form>
-            </td>
-            <td>
-              <form action="/switch/{{ device.hostname }}/vlan/{{ vlan.vid() }}/delete" method="POST">
-                <input type="hidden" name="VLAN_ID_TO_REMOVE" value="{{ vlan.vid() }}">
-                <button class="fi-trash alert radius tiny" type="submit">
-              </form>
-            </td>
-          </tr>
-        {% endfor %}
-        <tr>
-          <form action="/switch/{{ device.hostname }}/vlan/create" method="POST">
-            <td><input type="text" name="VLAN_NAME"></td>
-            <td><input type="number" name="VLAN_ID" min="1" max="200" step="1"></td>
-            <td tablespan="2">
-              <button class="fi-check expand success radius" value="99" type="submit">
-            </td>
-          </form>
-        </tr>
-      </table>
-    </div>
-  </div>
   <div class="large-12 columns">
     <table>
       <th>Port</th>
@@ -145,11 +103,55 @@
           </span>
         {% endif %}
       {% endfor %}
-      </p>
-      <input class="button" type="submit" />
+    </p>
+    <input class="button" type="submit" />
   </form>
   </div>
-  
+
+
+    <div class="large-12 columns">
+      <table>
+        <tr>
+          <th>VLAN Name</th>
+          <th>VLAN ID</th>
+          <th tablespan="2" >Action</th>
+        </tr>
+        {% for vlan in device.vlans() %}
+          <tr>
+            <td>
+              <form action="/switch/{{ device.hostname }}/vlan/{{ vlan.vid() }}/edit" method="POST">
+              <input type="hidden" value="{{ vlan.vid() }}" name="VLAN_ID_TO_RENAME">
+              <input type="text" value="{{ vlan.name() }}" name="VLAN_NEW_NAME">
+            </td>
+            <td>
+              {{ vlan.vid() }}
+            </td>
+            <td>
+                <button class="fi-pencil radius tiny" type="submit">
+              </form>
+            </td>
+            <td>
+              <form action="/switch/{{ device.hostname }}/vlan/{{ vlan.vid() }}/delete" method="POST">
+                <input type="hidden" name="VLAN_ID_TO_REMOVE" value="{{ vlan.vid() }}">
+                <button class="fi-trash alert radius tiny" type="submit">
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+        <tr>
+          <form action="/switch/{{ device.hostname }}/vlan/create" method="POST">
+            <td><input type="text" name="VLAN_NAME"></td>
+            <td><input type="number" name="VLAN_ID" min="1" max="200" step="1"></td>
+            <td tablespan="2">
+              <button class="fi-check expand success radius" value="99" type="submit">
+            </td>
+          </form>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+    
 {% endblock %}
     
 {% block jsscript %}

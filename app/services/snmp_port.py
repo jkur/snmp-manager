@@ -96,16 +96,19 @@ class SNMP_IFPort(object):
     def set_port_auth(self, active, auth_vlan=None, unauth_vlan=None):
         if unauth_vlan is not None:
             # HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xAuthUnauthVid
-            self._snmp.set('1.3.6.1.4.1.11.2.14.11.5.1.25.1.2.1.1.2.{}'.format(self._portidx), unauth_vlan)
+            # 1.3.6.1.4.1.11.2.14.11.5.1.25.1.2.1.1.2
+            self._snmp.set('HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xAuthUnauthVid.{}'.format(self._portidx), unauth_vlan)
         if auth_vlan is not None:
             # HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xAuthAuthVid
-            self._snmp.set('1.3.6.1.4.1.11.2.14.11.5.1.25.1.2.1.1.1.{}'.format(self._portidx), auth_vlan)
+            # 1.3.6.1.4.1.11.2.14.11.5.1.25.1.2.1.1.1
+            self._snmp.set('HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xAuthAuthVid.{}'.format(self._portidx), auth_vlan)
         if active:
             # HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xPaePortAuth
-            self._snmp.set('1.3.6.1.4.1.11.2.14.11.5.1.25.1.1.1.1.1.{}'.format(self._portidx), 1)
+            # 1.3.6.1.4.1.11.2.14.11.5.1.25.1.1.1.1.1
+            self._snmp.set('HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xPaePortAuth.{}'.format(self._portidx), 1)
         else:
             # HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xPaePortAuth
-            self._snmp.set('1.3.6.1.4.1.11.2.14.11.5.1.25.1.1.1.1.1.{}'.format(self._portidx), 2)
+            self._snmp.set('HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xPaePortAuth.{}'.format(self._portidx), 2)
 
     def port_access_info(self):
         ret = dict(

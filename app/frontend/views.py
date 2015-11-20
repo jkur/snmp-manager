@@ -27,14 +27,15 @@ def detail(hostname):
             if key.startswith('port-auth-'):
                 idx = int(key.split('-')[-1])
                 port_auth_enabled = True if value == "true" else False
-                port = device.get_port(idx)
+                port = device.ports().port(idx)
+                port.set_port_auth(port_auth_enabled)
                 if port.has_port_auth() and not port_auth_enabled:
                     port.set_port_auth(False)
                     print("Set port {} to NOAUTH".format(port.idx()))
                 if not port.has_port_auth() and port_auth_enabled:
                     port.set_port_auth(True)
                     print("Set port {} to AUTH".format(port.idx()))
-        redirect("/switch/{}".format(hostname))
+        return redirect("/switch/{}".format(hostname))
     return render_template('detail.html', device=device)
 
 
