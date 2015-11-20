@@ -26,6 +26,15 @@
           </td>
         </tr>
       </table>
+      {% if port.has_port_auth() %}
+        <table>
+        {% for item in port.get_auth_info() %}
+          <tr>
+            <td>{{ item.oid }}</td><td>{{ item.value }}</td>
+          </tr>
+        {% endfor %}
+        </table>
+      {% endif %}
     </div>
   </div>
   

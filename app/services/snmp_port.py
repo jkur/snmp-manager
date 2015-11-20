@@ -120,7 +120,18 @@ class SNMP_IFPort(object):
             )
         return ret
 
+    def get_auth_info(self):
+        # HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xAuthSessionStatsEntry
+        auth_info = []
+        auth_info += self._snmp.getall('HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xAuthSessionVid.{}'.format(self._portidx))
+        auth_info += self._snmp.getall('HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xAuthSessionUserName.{}'.format(self._portidx))
+        auth_info += self._snmp.getall('HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xAuthSessionTime.{}'.format(self._portidx))
+        auth_info += self._snmp.getall('HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xAuthSessionAuthenticMethod.{}'.format(self._portidx))
+        auth_info += self._snmp.getall('HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xAuthSessionId.{}'.format(self._portidx))
+        return auth_info
+
     def get_macs(self):
+        ## HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xSMAuthMacAddr.32. for auth ports
         allmacs = self._snmp.getall('1.3.6.1.2.1.17.4.3.1.2')
         mac_on_port = []
         for mac in allmacs:
