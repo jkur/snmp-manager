@@ -1,8 +1,8 @@
 from unittest import TestCase
 
 from app.services import SwitchDB
-from app.services.snmp_device import SNMP_Vlan, SNMP_Vlan_Base
-from app.services.snmp_device import SNMP_Vlanlist
+from app.services.snmp_vlan import SNMP_Vlan, SNMP_Vlan_Base
+from app.services.snmp_vlan import SNMP_Vlanlist
 
 
 class Test_Vlan(TestCase):

@@ -17,6 +17,7 @@ def index():
 @mod.route("/switch/<hostname>", methods=['GET', 'POST'])
 def detail(hostname):
     device = db.get_or_404(hostname)
+    device.ports().update()
     if request.method == 'POST':
         if request.form.get('802.1x-enabled', False):
             value = request.form.get('802.1x-enabled')
