@@ -4,13 +4,18 @@
   <div class="row full-width">
     <br/>
     <div class="large-12 columns">
+      <a href="/switch/{{ hostname }}">Back to Switch: {{ hostname }}</a>
       <table>
         <tr>
         <th>Port idx</th>
         <th>Port desc</th>
         <th>Port alias</th>
+        <th>Port auth</th>
+        <th>Unauth Vid</th>
+        <th>Auth Vid</th>
         <th>Macs</th>
         </tr>
+        <form action="/port/{{ hostname }}/{{ port.idx() }}/save" method="POST">
         <tr>
           <td>
             <span class="label{% if port.is_up() %} success{% endif %}">
@@ -20,12 +25,22 @@
           <td>{{ port.descr() }}</td>
           <td>{{ port.alias() }}</td>
           <td>
+            <select name="802.1x-enabled">
+              <option value="1" {% if port.has_port_auth()  %}selected{% endif %}>Yes</option>
+              <option value="2" {% if not port.has_port_auth() %}selected{% endif %}>No</option>
+            </select>
+          </td>
+          <td><input name='UNAUTHVID' type='number' style="width:4.5em;" min=0 max=200 value="{{ port.unauth_vid() }}" /></td>
+          <td><input name='AUTHVID' type='number' style="width:4.5em;" min=0 max=200 value="{{ port.auth_vid() }}" /></td>
+          <td>
           {% for mac in port.get_macs() %}
             {{ mac }}&nbsp;
           {% endfor %}
           </td>
         </tr>
       </table>
+      <button type="submit">Speichern</button>
+        </form>
       {% if port.has_port_auth() %}
         <table>
         {% for item in port.get_auth_info() %}

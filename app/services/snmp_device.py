@@ -65,6 +65,16 @@ class SNMP_Device():
     def get_ports(self):
         return self._ports
 
+    def get_auth_users_and_port(self):
+        auth_list = self._snmp.getall('HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xAuthSessionUserName')
+        ret = []
+        for entry in auth_list:
+            user = entry.value
+            port = int(entry.oid_index.split('.')[0])
+            ret.append((user, port))
+        # print (auth_list)
+        return ret
+
     def get_interfaces(self):
         return [x for x in self._ports if x.is_interface()]
 

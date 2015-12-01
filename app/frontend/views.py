@@ -131,9 +131,32 @@ def vlan_member_save(hostname):
     return redirect(url_for('.vlan_member', hostname=hostname))
 
 
-@mod.route("/port/<hostname>/<int:idx>")
+@mod.route("/port/<hostname>/<int:idx>", methods=["GET"])
 def port_detail(hostname, idx):
     device = db.get_or_404(hostname)
     vlans = device.vlans()
     port = device.get_port(idx)
     return render_template('port.html', hostname=hostname, device=device, vlans=vlans, port=port)
+
+
+@mod.route("/port/<hostname>/<int:idx>/save", methods=["POST"])
+def port_save(hostname, idx):
+    device = db.get_or_404(hostname)
+    port = device.get_port(idx)
+    if request.method == 'POST':
+        auth_vid = request.form.get('AUTHVID', None)
+        unauth_vid = request.form.get('UNAUTHVID', None)
+        port_auth = True if request.form.get('802.1x-enabled', 2) == '1' else False
+        port.set_port_auth(port_auth, auth_vid, unauth_vid)
+        flash("Port Auth saved")
+    return redirect(url_for('.port_detail', hostname=hostname, idx=idx))
+
+
+@mod.route("/auth", methods=["GET"])
+def auth_index():
+    devices = db.all()
+    auth_info = {}
+    for device in devices:
+        users_and_port = device.get_auth_users_and_port()
+        auth_info.update({device.hostname: users_and_port})
+    return render_template('auth.html', devices=devices, auth_info=auth_info)

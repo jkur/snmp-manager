@@ -188,19 +188,31 @@ class SNMP_IFPort(object):
         except:
             return False
 
+    def unauth_vid(self):
+        if self.has_port_auth():
+            return self._snmp.get('HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xAuthUnauthVid.{}'.format(self._portidx)).value
+        else:
+            return -1
+
+    def auth_vid(self):
+        if self.has_port_auth():
+            return self._snmp.get('HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xAuthAuthVid.{}'.format(self._portidx)).value
+        else:
+            return -1
+
     def set_port_auth(self, active, auth_vlan=None, unauth_vlan=None):
-        if unauth_vlan is not None:
-            # HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xAuthUnauthVid
-            # 1.3.6.1.4.1.11.2.14.11.5.1.25.1.2.1.1.2
-            self._snmp.set('HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xAuthUnauthVid.{}'.format(self._portidx), unauth_vlan)
-        if auth_vlan is not None:
-            # HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xAuthAuthVid
-            # 1.3.6.1.4.1.11.2.14.11.5.1.25.1.2.1.1.1
-            self._snmp.set('HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xAuthAuthVid.{}'.format(self._portidx), auth_vlan)
         if active:
             # HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xPaePortAuth
             # 1.3.6.1.4.1.11.2.14.11.5.1.25.1.1.1.1.1
             self._snmp.set('HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xPaePortAuth.{}'.format(self._portidx), 1)
+            if unauth_vlan is not None:
+                # HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xAuthUnauthVid
+                # 1.3.6.1.4.1.11.2.14.11.5.1.25.1.2.1.1.2
+                self._snmp.set('HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xAuthUnauthVid.{}'.format(self._portidx), unauth_vlan)
+            if auth_vlan is not None:
+                # HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xAuthAuthVid
+                # 1.3.6.1.4.1.11.2.14.11.5.1.25.1.2.1.1.1
+                self._snmp.set('HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xAuthAuthVid.{}'.format(self._portidx), auth_vlan)
         else:
             # HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xPaePortAuth
             self._snmp.set('HP-DOT1X-EXTENSIONS-MIB::hpicfDot1xPaePortAuth.{}'.format(self._portidx), 2)

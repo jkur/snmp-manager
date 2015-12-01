@@ -102,6 +102,19 @@ class Test_SwitchDB(TestCase):
         self.assertTrue(device.get_vlan(20).is_tagged(1))
         self.assertTrue(device.get_vlan(25).is_tagged(1))
 
+    #def test_auth_list(self):
+    #    class AppMock():
+    #        def __init__(self, conf):
+    #            self.conf = conf
+    #            self.config = dict(SWITCHES={'switch-loft4-2': self.conf})
+    #    appmock = AppMock(self.confv3)
+    #    s = SwitchDB()
+    #    s.init_app(appmock)
+    #    device = s.all()[0]
+    #    self.assertEqual([('tobias.scherer', 30)], device.get_auth_users_and_port())
+
+
+
     def test_vlan_table(self):
         s = "".join(map(chr, [0x8A, 0,0,0,0,0,0,0,0,0,0,0,0]))
         table = ''.join(["%02X " % ord(x) for x in s]).strip()

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="row full-width">
+    <div class="medium-12 columns">
+    <table>
+      <tr>
+        <th>Switch</th>
+        <th>User</th>
+        <th>Port</th>
+      </tr>
+  
+      {% for device, auth in auth_info.items() %}
+        {% for user, port in auth %}
+        <tr>
+          <td>{{ device }}</td>
+          <td>{{ user }}</td>
+          <td>{{ port }}</td>
+        </tr>
+        {% endfor %}
+      {% endfor %}
+    </table>
+    </div>
+  </div>
+
+{% endblock %}
