@@ -23,15 +23,15 @@
             </span>
           </td>
           <td>{{ port.descr() }}</td>
-          <td>{{ port.alias() }}</td>
+          <td><input name='ifalias' type='text' value='{{ port.alias() }}' /></td>
           <td>
             <select name="802.1x-enabled">
               <option value="1" {% if port.has_port_auth()  %}selected{% endif %}>Yes</option>
               <option value="2" {% if not port.has_port_auth() %}selected{% endif %}>No</option>
             </select>
           </td>
-          <td><input name='UNAUTHVID' type='number' style="width:4.5em;" min=0 max=200 value="{{ port.unauth_vid() }}" /></td>
-          <td><input name='AUTHVID' type='number' style="width:4.5em;" min=0 max=200 value="{{ port.auth_vid() }}" /></td>
+          <td><input name='UNAUTHVID' type='number' style="width:4.5em;" min=-1 max=200 value="{{ port.unauth_vid() }}" /></td>
+          <td><input name='AUTHVID' type='number' style="width:4.5em;" min=-1 max=200 value="{{ port.auth_vid() }}" /></td>
           <td>
           {% for mac in port.get_macs() %}
             {{ mac }}&nbsp;

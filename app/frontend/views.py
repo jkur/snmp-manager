@@ -148,6 +148,9 @@ def port_save(hostname, idx):
         unauth_vid = request.form.get('UNAUTHVID', None)
         port_auth = True if request.form.get('802.1x-enabled', 2) == '1' else False
         port.set_port_auth(port_auth, auth_vid, unauth_vid)
+        # set alias
+        if request.form.get('ifalias', None) is not None:
+            port.set_alias(request.form.get('ifalias', None))
         flash("Port Auth saved")
     return redirect(url_for('.port_detail', hostname=hostname, idx=idx))
 

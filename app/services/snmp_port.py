@@ -145,6 +145,9 @@ class SNMP_IFPort(object):
             ret = self._portdescr
         return ret
 
+    def set_alias(self, alias):
+        self._snmp.set('IF-MIB:ifAlias.{}'.format(self._portidx), str(alias))
+
     def is_up(self):
         return self._portstatus == 1
 
