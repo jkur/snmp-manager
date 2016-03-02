@@ -16,6 +16,19 @@
   </head>
     <title>Neuland ProCurve Manager</title>
     <body>
+      <div class="fixed">
+        <nav class="top-bar" data-topbar role="navigation">
+          <ul class="title-area">
+            <li class="name"><h1><a href="/">SNMP Manager</a></h1></li>
+          </ul>
+          <section class="top-bar-section">
+            <ul class="right">
+              <li><a href="/search/mac">Search MAC</a></li>
+              <li><a href="/search/mac">Search MAC</a></li>
+            </ul>
+          </section>
+        </nav>
+      </div>
       {% with messages = get_flashed_messages() %}
         {% if messages %}
           <div class="row">
