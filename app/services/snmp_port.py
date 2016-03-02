@@ -128,6 +128,9 @@ class SNMP_IFPort(object):
         # max(CONFIG-MIB::hpSwitchPortTrunkGroup)
         # first propMultiplexor(54) or ieee8023adLag(161)
 
+    def parent_device(self):
+        return self._device
+        
     def vlan_member(self):
         if self.is_interface():
             return self._device.get_port_membership(self._portidx)
@@ -247,7 +250,7 @@ class SNMP_IFPort(object):
         for mac in allmacs:
             if int(mac.value) == self._portidx:
                 oid = '1.3.6.1.2.1.17.4.3.1.1.'+mac.oid_index
-                hexstring = ':'.join(["%02X" % ord(x) for x in self._snmp.get(oid).value]).strip()
+                hexstring = ':'.join(["%02X" % ord(x) for x in self._snmp.get(oid).value]).strip().upper()
                 mac_on_port.append(hexstring)
         return mac_on_port
 

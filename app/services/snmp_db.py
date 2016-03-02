@@ -30,3 +30,28 @@ class SwitchDB():
         for k, v in self._switches.items():
             ret.append(v)
         return ret
+
+    def global_search_mac2(self, mac):
+        result = []
+        devices = self.all()
+        for device in devices:
+            result.append(device.find_mac(mac))
+        if len(result):
+            return [item for sublist in result for item in sublist]
+        else:
+            return None
+
+    def global_search_mac(self, mac):
+        result = []
+        devices = self.all()
+        for device in devices:
+            ports = device.ports()
+            ports.update()
+            for port in ports:
+                if port.is_interface():
+                    if mac.upper() in port.get_macs():
+                        result.append((device.hostname, port))
+        if len(result):
+            return result
+        else:
+            return None

@@ -15,7 +15,25 @@
 	{% endblock css %}	
   </head>
     <title>Neuland ProCurve Manager</title>
-  <body>
+    <body>
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <div class="row">
+            <div class="large-5 columns">
+              <div class="alert callout" data-closable>
+                <span>
+                  {% for message in messages %}
+                    {{ message }}
+                  {% endfor %}
+                <button class="close-button" aria-label="Dismiss alert" type="button" data-close>
+                  <span aria-hidden="true">&times;</span>
+                </button>
+                </span>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+      {% endwith %}
 	{% block content %}
 	{% endblock %}
     <script type="text/javascript">

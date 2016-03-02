@@ -1,7 +1,6 @@
-from .snmp_port import SNMP_Portlist
+from .snmp_port import SNMP_Portlist, SNMP_IFPort
 from .snmp_vlan import SNMP_Vlanlist
 from app.services import SNMP_Service
-
 
 class SNMP_Entity_List(object):
     # make this the super class for portlist and vlanlist
@@ -83,3 +82,13 @@ class SNMP_Device():
 
     def get_port(self, idx):
         return self._ports.port(idx)
+
+    def find_mac(self, macstring):
+        allmacs = self._snmp.getall('1.3.6.1.2.1.17.4.3.1.2')
+        mac_on_port = []
+        for mac in allmacs:
+            oid = '1.3.6.1.2.1.17.4.3.1.1.'+mac.oid_index
+            hexstring = ':'.join(["%02X" % ord(x) for x in self._snmp.get(oid).value]).strip().upper()
+            if macstring.upper() == hexstring:
+                mac_on_port.append((self.hostname, SNMP_IFPort(mac.value, self._snmp)))
+        return mac_on_port

@@ -3,6 +3,8 @@
 from flask import render_template, Blueprint, request, redirect, url_for, flash
 
 from app.services import switch_db as db
+import re
+
 
 mod = Blueprint('views', __name__,
                 template_folder='templates')
@@ -136,7 +138,8 @@ def port_detail(hostname, idx):
     device = db.get_or_404(hostname)
     vlans = device.vlans()
     port = device.get_port(idx)
-    return render_template('port.html', hostname=hostname, device=device, vlans=vlans, port=port)
+    vlan_membership = vlans.get_port_membership(idx)
+    return render_template('port.html', hostname=hostname, device=device, vlans=vlans, port=port, vlan_membership=vlan_membership)
 
 
 @mod.route("/port/<hostname>/<int:idx>/save", methods=["POST"])
@@ -154,6 +157,23 @@ def port_save(hostname, idx):
         flash("Port Auth saved")
     return redirect(url_for('.port_detail', hostname=hostname, idx=idx))
 
+
+@mod.route("/search/mac/", methods=["GET", "POST"])
+def search_mac():
+    result = None
+    device = None
+    mac = '00:00:00:00:00:00'
+    if request.method == 'POST':
+        mac = request.form.get('mac', None)
+        if mac is not None:
+            # validate input
+            if not re.match('([A-F0-9]{2}:){5}[A-F0-9]{2}', mac.upper()):
+                flash("Bad Mac Address")
+            else:
+                result = db.global_search_mac2(mac)
+                if result is None:
+                    flash("Mac ({0}) not found".format({'mac': mac}))
+    return render_template('search_mac.html', result=result, mac=mac, device=device)
 
 @mod.route("/auth", methods=["GET"])
 def auth_index():

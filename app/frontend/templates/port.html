@@ -50,6 +50,31 @@
         {% endfor %}
         </table>
       {% endif %}
+
+      <!-- Port membership -->
+      <h5>VLAN Membership</h5>
+      <table>
+        <thead>
+          <tr>
+            <th>VLAN ID</th>
+            {%- for vlan_id in vlan_membership %}
+              <th>{{ vlan_id.0 }}</th>
+            {%- endfor %}
+          </tr>
+        </thead>
+        <tr>
+          <td>&nbsp;</td>
+          {%- for vlan_mem in vlan_membership %}
+            {%- if vlan_mem.1 == 'f' %}
+              <td><span class="label alert">Forbid</span></td>
+            {%- elif vlan_mem.1 == 'u' %}
+              <td><span class="label success">Untagged</span></td>
+            {%- elif vlan_mem.1 == 't' %}
+              <td><span class="label">Tagged</span></td>
+            {%- endif %}
+          {%- endfor %}
+        </tr>
+      </table>
     </div>
   </div>
   
