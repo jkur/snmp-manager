@@ -31,7 +31,7 @@ class SwitchDB():
             ret.append(v)
         return ret
 
-    def global_search_mac2(self, mac):
+    def global_search_mac(self, mac):
         result = []
         devices = self.all()
         for device in devices:
@@ -41,17 +41,13 @@ class SwitchDB():
         else:
             return None
 
-    def global_search_mac(self, mac):
+    def global_search_vlan(self, vlanid):
         result = []
         devices = self.all()
         for device in devices:
-            ports = device.ports()
-            ports.update()
-            for port in ports:
-                if port.is_interface():
-                    if mac.upper() in port.get_macs():
-                        result.append((device.hostname, port))
+            result.append(device.find_ports_with_vlan(vlanid))
         if len(result):
+            #return [item for sublist in result for item in sublist]
             return result
         else:
             return None

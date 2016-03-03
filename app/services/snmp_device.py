@@ -1,6 +1,8 @@
 from .snmp_port import SNMP_Portlist, SNMP_IFPort
 from .snmp_vlan import SNMP_Vlanlist
 from app.services import SNMP_Service
+from .snmp_vlan import Hex_Array
+
 
 class SNMP_Entity_List(object):
     # make this the super class for portlist and vlanlist
@@ -92,3 +94,30 @@ class SNMP_Device():
             if macstring.upper() == hexstring:
                 mac_on_port.append((self.hostname, SNMP_IFPort(mac.value, self._snmp)))
         return mac_on_port
+
+    def find_ports_with_vlan(self, vlanid):
+        snmpresult = self._snmp.get('Q-BRIDGE-MIB::dot1qVlanStaticEgressPorts.'+str(vlanid))
+        table = ''.join(["%02X " % ord(x) for x in snmpresult.value]).strip()
+        egress = Hex_Array(bytearray.fromhex(table))
+
+        snmpresult = self._snmp.get('Q-BRIDGE-MIB::dot1qVlanStaticUntaggedPorts.'+str(vlanid))
+        table = ''.join(["%02X " % ord(x) for x in snmpresult.value]).strip()
+        untagged = Hex_Array(bytearray.fromhex(table))
+
+        snmpresult = self._snmp.get('Q-BRIDGE-MIB::dot1qVlanForbiddenEgressPorts.'+str(vlanid))
+        table = ''.join(["%02X " % ord(x) for x in snmpresult.value]).strip()
+        forbidden = Hex_Array(bytearray.fromhex(table))
+
+        ports_found = { 'untagged': [], 'tagged': []}
+        for port in range(1, len(self._ports)+1):
+            try:
+                port = int(port)
+            except ValueError:
+                continue
+            if untagged[port]:
+                ports_found['untagged'].append(SNMP_IFPort(port, self._snmp))
+            elif forbidden[port]:
+                pass
+            elif egress[port]:
+                ports_found['tagged'].append(SNMP_IFPort(port, self._snmp))
+        return (self, ports_found)

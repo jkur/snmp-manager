@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="row">
+    <div class="large-12 columns">
+      <a href="/">Back to overview</a>
+    </div>
+  </div>
+  <div class="row">
+    <div class="large-4 columns">
+      <form method="POST" action="/search/byvlan/">
+        <label>Search Ports with VLAN ID configured</label>
+        <input name="vlan" type="text" value="{{ vlan }}"/>
+        <button type="submit">Suchen</button>
+      </form>
+    </div>
+  </div>
+  {% if result %}
+  <div class="row">
+    <div class="large-9 columns">
+      <table>
+        <tr><th>Switch</th><th>Ports (untagged)</th><th>Ports (tagged)</th></tr>
+        {% for t in result %}
+          <tr>
+            <td>{{ t.0.hostname }}</td>
+            <td>
+            {% for untagged_port in t.1['untagged'] %}
+              <span class="{% if untagged_port.is_up() %}success{% endif %} label"><a href="/port/{{ t.0.hostname }}/{{ untagged_port.idx() }}">{{ untagged_port.descr() }}</a></span>
+            {% endfor %}
+            </td><td>
+              {% for tagged_port in t.1['tagged'] %}
+                <span class="{% if tagged_port.is_up() %}success{% endif %} label"><a href="/port/{{ t.0.hostname }}/{{ tagged_port.idx() }}">{{ tagged_port.descr() }}</a></span>
+              {% endfor %}
+            </td>
+          </tr>
+      {% endfor %}
+      </table>
+    </div>
+  </div>
+  {% endif %}
+{% endblock %}
+    
+{% block jsscript %}
+{% endblock %}

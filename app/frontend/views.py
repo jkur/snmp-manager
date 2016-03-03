@@ -95,7 +95,7 @@ def vlan_create_all():
             try:
                 device.vlan_create(vlan_id, vlan_name)
             except:
-                flash("Failed to create vlan {} on {}".format(vlan_id, device.hostname()))
+                flash("Failed to create vlan {} on {}".format(vlan_id, device.hostname))
         return redirect(url_for('.index'))
 
 
@@ -170,10 +170,21 @@ def search_mac():
             if not re.match('([A-F0-9]{2}:){5}[A-F0-9]{2}', mac.upper()):
                 flash("Bad Mac Address")
             else:
-                result = db.global_search_mac2(mac)
+                result = db.global_search_mac(mac)
                 if result is None:
                     flash("Mac ({0}) not found".format({'mac': mac}))
     return render_template('search_mac.html', result=result, mac=mac, device=device)
+
+
+@mod.route("/search/byvlan/", methods=['GET', 'POST'])
+def search_byvlan():
+    result = []
+    if request.method == 'POST':
+        vlan = request.form.get('vlan', None)
+        if vlan is not None:
+            result = db.global_search_vlan(int(vlan))
+    return render_template('search_byvlan.html', result=result)
+
 
 @mod.route("/auth", methods=["GET"])
 def auth_index():
