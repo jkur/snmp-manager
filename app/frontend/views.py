@@ -189,11 +189,12 @@ def search_byvlan():
 @mod.route("/search/hostname/", methods=['GET', 'POST'])
 def search_byhostname():
     result = []
+    hostname = ''
     if request.method == 'POST':
         hostname = request.form.get('hostname', None)
         if hostname is not None:
             result = db.global_search_byhostname(hostname)
-    return render_template('search_hostname.html', result=result)
+    return render_template('search_hostname.html', result=result, hostname=hostname)
 
 
 @mod.route("/auth", methods=["GET"])
