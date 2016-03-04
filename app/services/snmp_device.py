@@ -2,7 +2,7 @@ from .snmp_port import SNMP_Portlist, SNMP_IFPort
 from .snmp_vlan import SNMP_Vlanlist
 from app.services import SNMP_Service
 from .snmp_vlan import Hex_Array
-
+import re
 
 class SNMP_Entity_List(object):
     # make this the super class for portlist and vlanlist
@@ -108,7 +108,7 @@ class SNMP_Device():
         table = ''.join(["%02X " % ord(x) for x in snmpresult.value]).strip()
         forbidden = Hex_Array(bytearray.fromhex(table))
 
-        ports_found = { 'untagged': [], 'tagged': []}
+        ports_found = {'untagged': [], 'tagged': []}
         for port in range(1, len(self._ports)+1):
             try:
                 port = int(port)
@@ -121,3 +121,13 @@ class SNMP_Device():
             elif egress[port]:
                 ports_found['tagged'].append(SNMP_IFPort(port, self._snmp))
         return (self, ports_found)
+
+    def find_connected_host(self, hostname):
+        allhost = self._snmp.getall('.1.0.8802.1.1.2.1.4.1.1.9.0')
+        result = []
+        for host in allhost:
+            if re.match(hostname+'.*', host.value):
+                port_idx = host.oid.split('.')[-2]
+                result.append({'host': host.value,
+                               'port': SNMP_IFPort(port_idx, self._snmp)})
+        return (self, result)

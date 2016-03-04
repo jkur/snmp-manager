@@ -186,6 +186,16 @@ def search_byvlan():
     return render_template('search_byvlan.html', result=result)
 
 
+@mod.route("/search/hostname/", methods=['GET', 'POST'])
+def search_byhostname():
+    result = []
+    if request.method == 'POST':
+        hostname = request.form.get('hostname', None)
+        if hostname is not None:
+            result = db.global_search_byhostname(hostname)
+    return render_template('search_hostname.html', result=result)
+
+
 @mod.route("/auth", methods=["GET"])
 def auth_index():
     devices = db.all()

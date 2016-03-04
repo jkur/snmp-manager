@@ -25,11 +25,11 @@
             <td>{{ t.0.hostname }}</td>
             <td>
             {% for untagged_port in t.1['untagged'] %}
-              <span class="{% if untagged_port.is_up() %}success{% endif %} label"><a href="/port/{{ t.0.hostname }}/{{ untagged_port.idx() }}">{{ untagged_port.descr() }}</a></span>
+              <span class="{% if untagged_port.is_up() %}success{% endif %} label"><a href="/port/{{ t.0.hostname }}/{{ untagged_port.idx() }}">{{ untagged_port.descr() }}</a><br/>{{ untagged_port.alias() }}</span>
             {% endfor %}
             </td><td>
               {% for tagged_port in t.1['tagged'] %}
-                <span class="{% if tagged_port.is_up() %}success{% endif %} label"><a href="/port/{{ t.0.hostname }}/{{ tagged_port.idx() }}">{{ tagged_port.descr() }}</a></span>
+                <span class="{% if tagged_port.is_up() %}success{% endif %} label"><a href="/port/{{ t.0.hostname }}/{{ tagged_port.idx() }}">{{ tagged_port.descr() }}</a><br/>{{ tagged_port.alias() }}</span>
               {% endfor %}
             </td>
           </tr>

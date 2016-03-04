@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="row">
+    <div class="large-12 columns">
+      <a href="/">Back to overview</a>
+    </div>
+  </div>
+  <div class="row">
+    <div class="large-4 columns">
+      <form method="POST" action="/search/hostname/">
+        <label>Search Ports where Host ic connected</label>
+        <input name="hostname" type="text" value="{{ hostname }}"/>
+        <button type="submit">Suchen</button>
+      </form>
+    </div>
+  </div>
+  {% if result %}
+  <div class="row">
+    <div class="large-9 columns">
+      <table>
+        <tr><th>Switch</th><th>Ports</th>
+        {% for t in result %}
+          <tr>
+            <td>{{ t.0.hostname }}</td>
+            <td>
+              {% for value in t.1 %}
+                {% set host=value['host'] %}
+                {% set port=value['port'] %}
+                <span class="label"><b>{{ host }}</b>
+                  <span class="{% if port.is_up() %}success{% endif %} label"><a href="/port/{{ t.0.hostname }}/{{ port.idx() }}">{{ port.descr() }}</a><br/>{{ port.alias() }}</span>
+                </span>
+            {% endfor %}
+            </td>
+          </tr>
+      {% endfor %}
+      </table>
+    </div>
+  </div>
+  {% endif %}
+{% endblock %}
+    
+{% block jsscript %}
+{% endblock %}

@@ -51,3 +51,14 @@ class SwitchDB():
             return result
         else:
             return None
+
+    def global_search_byhostname(self, hostname):
+        # LLDP INFO is here .1.0.8802.1.1.2.1.4.1.1.9.0
+        result = []
+        devices = self.all()
+        for device in devices:
+            result.append(device.find_connected_host(hostname))
+        if len(result):
+            return result
+        else:
+            return None
