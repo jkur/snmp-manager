@@ -1,6 +1,9 @@
 # coding: utf-8
 
 
+from .snmp_vlan import SNMP_Vlan_Base
+
+
 class SNMP_Portlist():
     def __init__(self, snmp_service):
         self._snmp = snmp_service
@@ -128,9 +131,12 @@ class SNMP_IFPort(object):
         # max(CONFIG-MIB::hpSwitchPortTrunkGroup)
         # first propMultiplexor(54) or ieee8023adLag(161)
 
+    def get_vlantable(self, vlan_id):
+        return SNMP_Vlan_Base(vlan_id, self._snmp)
+
     def parent_device(self):
         return self._device
-        
+
     def vlan_member(self):
         if self.is_interface():
             return self._device.get_port_membership(self._portidx)

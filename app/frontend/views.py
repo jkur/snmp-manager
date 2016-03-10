@@ -157,6 +157,18 @@ def port_save(hostname, idx):
         flash("Port Auth saved")
     return redirect(url_for('.port_detail', hostname=hostname, idx=idx))
 
+@mod.route("/port/<hostname>/<int:idx>/add/vlan", methods=['POST'])
+def port_add_vlan(hostname, idx):
+    device = db.get_or_404(hostname)
+    port = device.get_port(idx)
+    if request.method == 'POST':
+        if request.form.get('vlan', None) is not None:
+            # we add only tagged vlan for now
+            vlan_id = request.form.get('vlan')
+            port.get_vlantable(vlan_id).set_port_status(port.idx(), 't')
+            flash("VLAN {0} (tagged) added".format(str(vlan_id)))
+    return redirect(url_for('.port_detail', hostname=hostname, idx=idx))
+
 
 @mod.route("/search/mac/", methods=["GET", "POST"])
 def search_mac():

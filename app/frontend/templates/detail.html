@@ -49,7 +49,7 @@
       {% for port in device.get_ports() %}
         {% if port.is_trunk() or port.is_lacp()%}
           <tr>
-            <td>{{ port.descr() }} {% if port.alias()!='' %}({{ port.alias() }}){% endif %}</td>
+            <td><span class="{% if port.is_up() %}success{% endif %} label"><a href="/port/{{ device.hostname }}/{{ port.idx() }}">{{ port.descr() }}{% if port.alias()!='' %}({{ port.alias() }}){% endif %}</a></span></td>
             <td>{% if port.is_trunk() %}Trunk{% else %}LACP{% endif %}</td>
             <td>
               {% for member in port.members() %}

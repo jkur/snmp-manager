@@ -13,24 +13,38 @@ class SNMP_Vlan():
 
 
 class Hex_Array():
-    def __init__(self, array):
-        if type(array) is bytearray:
+    def __init__(self, array, inverted=False):
+        if isinstance(array, str):
+            # print("creating hexarray from string")
+            hexvalue = ''.join(["%02X" % ord(x) for x in array if x not in ['\n', ' ']]).strip()
+            print(hexvalue)
+            self._data = bytearray.fromhex(hexvalue)
+        elif isinstance(array, bytearray):
+            # print("creating hexarray from bytearray")
             self._data = array
+        self._inverted = inverted
 
     def __repr__(self):
-        return str(self._data)
+        return ''.join(["%02X " % x for x in self._data]).strip()
 
     def __getitem__(self, idx):
         byte_idx, portvalue = self._read_byte(idx)
         return (self._data[byte_idx] & portvalue) == portvalue
 
-    def __setitem__(self, idx, unset=False):
+    def __setitem__(self, idx, value):
         byte_idx, portvalue = self._read_byte(idx)
-        if unset:
-            self._data[byte_idx] = self._data[byte_idx] & ~portvalue
+        if self._inverted:
+            if not value:
+                self._data[byte_idx] = self._data[byte_idx] | portvalue
+            else:
+                self._data[byte_idx] = self._data[byte_idx] & ~portvalue
             return (self._data[byte_idx] & portvalue) == portvalue
+        # regular setting
         else:
-            self._data[byte_idx] = self._data[byte_idx] | portvalue
+            if value:
+                self._data[byte_idx] = self._data[byte_idx] | portvalue
+            else:
+                self._data[byte_idx] = self._data[byte_idx] & ~portvalue
             return (self._data[byte_idx] & portvalue) == portvalue
 
     def _read_byte(self, portnum):
@@ -43,19 +57,16 @@ class Hex_Array():
         sub_idx = (portnum - 1) % 8
         portvalue = 128 >> sub_idx
         # print("DEBUG: Port {}, byteidx {}, subidx {}, portvalue {}({})".format(portnum, byte_idx, sub_idx, portvalue, hex(portvalue)))
-        return byte_idx, portvalue
+        return int(byte_idx), int(portvalue)
 
 
 class SNMP_Vlan_Base(object):
     def __init__(self, vlan_id, snmp_service=None):
         self._table_tagged = Hex_Array(bytearray())
-        self._table_tagged_raw = None
 
         self._table_untagged = Hex_Array(bytearray())
-        self._table_untagged_raw = None
 
         self._table_forbidden = Hex_Array(bytearray())
-        self._table_forbidden_raw = None
 
         self._dirty = True
         self._snmp = snmp_service
@@ -66,21 +77,15 @@ class SNMP_Vlan_Base(object):
     def _refresh(self):
         # untagged
         result = self._snmp.get('Q-BRIDGE-MIB::dot1qVlanStaticUntaggedPorts.{}'.format(self._vlan_id))
-        table = ''.join(["%02X " % ord(x) for x in result.value]).strip()
-        self._table_untagged_raw = bytearray.fromhex(table)
-        self._table_untagged = Hex_Array(bytearray.fromhex(table))
+        self._table_untagged = Hex_Array(result.value)
 
         # tagged
         result = self._snmp.get('Q-BRIDGE-MIB::dot1qVlanStaticEgressPorts.{}'.format(self._vlan_id))
-        table = ''.join(["%02X " % ord(x) for x in result.value]).strip()
-        self._table_tagged_raw = bytearray.fromhex(table)
-        self._table_tagged = Hex_Array(bytearray.fromhex(table))
+        self._table_tagged = Hex_Array(result.value)
 
         # forbidden
         result = self._snmp.get('Q-BRIDGE-MIB::dot1qVlanForbiddenEgressPorts.{}'.format(self._vlan_id))
-        table = ''.join(["%02X " % ord(x) for x in result.value]).strip()
-        self._table_forbidden_raw = bytearray.fromhex(table)
-        self._table_forbidden = Hex_Array(bytearray.fromhex(table))
+        self._table_forbidden = Hex_Array(result.value)
         self._dirty = False
 
     def __repr__(self):
@@ -110,9 +115,11 @@ class SNMP_Vlan_Base(object):
 
     def print_tables(self):
         print(self)
-        print("Untagged: ", ' '.join(["%02X" % x for x in self._table_untagged._data]))
-        print("Tagged:   ", ' '.join(["%02X" % x for x in self._table_tagged._data]))
-        print("Forbid:   ", ' '.join(["%02X" % x for x in self._table_forbidden._data]))
+        print ("==== DEBUG ====")
+        print("Untagged: ", self._table_untagged)
+        print("Tagged:   ", self._table_tagged)
+        print("Forbid:   ", self._table_forbidden)
+        print ("==== END ====")
 
     def _write_untagged_default(self):
         # the default vlan is dependent of the other untagged vlan ports
@@ -120,9 +127,9 @@ class SNMP_Vlan_Base(object):
         # BROKEN: untagged_default_vlan = [0xff - (x|y|z) for x, y, z in zip(self._table_untagged [...])
         pass
 
-    def port_table(self):
-        self._refresh()
-        return (self._table_untagged_raw, self._table_tagged_raw, self._table_forbidden_raw)
+#    def port_table(self):
+#        self._refresh()
+#        return (self._table_untagged_raw, self._table_tagged_raw, self._table_forbidden_raw)
 
     def is_dirty(self):
         return self._dirty
@@ -132,6 +139,27 @@ class SNMP_Vlan_Base(object):
 
     def clean(self):
         self._dirty = False
+
+    def get_port_status(self, portnum):
+        if self._table_untagged[portnum]:
+            return ("UNTAGGED", 'u')
+        if self._table_forbidden[portnum]:
+            return ("FORBIDDEN", 'f')
+        if self._table_tagged[portnum]:
+            return ("TAGGED", 't')
+        return ("NO", '')
+
+    def set_port_status(self, portnum, status_code):
+        if status_code == 't':
+            self._table_tagged[portnum] = True
+            self._table_untagged[portnum] = False
+            self._table_forbidden[portnum] = False
+
+            self._snmp.set_multiple([('Q-BRIDGE-MIB::dot1qVlanStaticUntaggedPorts.{}'.format(self._vlan_id), str(self._table_untagged)),
+                                     ('Q-BRIDGE-MIB::dot1qVlanStaticForbiddenPorts.{}'.format(self._vlan_id), str(self._table_forbidden)),
+                                     ('Q-BRIDGE-MIB::dot1qVlanStaticEgressPorts.{}'.format(self._vlan_id), str(self._table_tagged))])
+        else:
+            raise Exception("NOT yet implemented")
 
     def is_tagged(self, portnum):
         if self._table_untagged[portnum]:
@@ -203,8 +231,8 @@ class SNMP_Vlanlist():
         return self
 
     def get_port_membership(self, portidx):
-        if self._vlans is None or self._vlans_dirty:
-            self._refresh()
+        #if self._vlans is None or self._vlans_dirty:
+        self._refresh()
         ret = []
         for vlan in self._vlans:
             if vlan.is_forbidden(portidx):

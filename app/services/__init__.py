@@ -59,6 +59,9 @@ class SNMP_Service():
     def set(self, oid, value, snmp_type=None):
         return self.session.set(oid, value, snmp_type)
 
+    def set_multiple(self, oids):
+        return self.session.set_multiple(oids)
+
 
 from .snmp_db import SwitchDB
 

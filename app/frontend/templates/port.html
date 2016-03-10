@@ -4,6 +4,24 @@
   <div class="row full-width">
     <br/>
     <div class="large-12 columns">
+      {% if port.is_trunk() %}
+        <h2>Trunk Port {{port.descr()}}</h2>
+        <h5>Members: {% for member in port.members() %}
+          <span class="label {% if member.is_up() %}success{% endif %}">
+            {{ member.descr() }} {# { member.alias() } #}
+          </span>{% endfor %}</h5>
+      {% elif port.is_lacp() %}
+        <h2>LACP Port {{port.descr()}}</h2>
+        <h5>Members: {% for member in port.members() %}
+          <span class="label {% if member.is_up() %}success{% endif %}">
+            {{ member.descr() }} {# { member.alias() } #}
+          </span>{% endfor %}</h5>
+      {% else %}
+        <h2>Port: {{port.idx()}}</h2>
+      {% endif %}
+    </div>
+    
+    <div class="large-12 columns">
       <a href="/switch/{{ hostname }}">Back to Switch: {{ hostname }}</a>
       <table>
         <tr>
@@ -75,6 +93,15 @@
           {%- endfor %}
         </tr>
       </table>
+      <form action="/port/{{device.hostname}}/{{port.idx()}}/add/vlan" method="POST">
+        <input type="select" name="vlan">
+          <option value=3 name="LAN1">
+          <option value=4 name="LAN2">
+          <option value=6 name="LAN3">
+          <option value=100 name="MGMT">
+        </input>
+        <button type="submit">Hinzufügen</button>
+      </form>
     </div>
   </div>
   
