@@ -1,6 +1,6 @@
 # coding: utf-8
 import math
-
+import binascii
 
 # Factory
 class SNMP_Vlan():
@@ -149,15 +149,18 @@ class SNMP_Vlan_Base(object):
             return ("TAGGED", 't')
         return ("NO", '')
 
+    def _b2astr(self, ba):
+        return str(binascii.b2a_hex(ba._data))
+
     def set_port_status(self, portnum, status_code):
         if status_code == 't':
             self._table_tagged[portnum] = True
             self._table_untagged[portnum] = False
             self._table_forbidden[portnum] = False
 
-            self._snmp.set_multiple([('Q-BRIDGE-MIB::dot1qVlanStaticUntaggedPorts.{}'.format(self._vlan_id), str(self._table_untagged)),
-                                     ('Q-BRIDGE-MIB::dot1qVlanStaticForbiddenPorts.{}'.format(self._vlan_id), str(self._table_forbidden)),
-                                     ('Q-BRIDGE-MIB::dot1qVlanStaticEgressPorts.{}'.format(self._vlan_id), str(self._table_tagged))])
+            self._snmp.set_multiple([('Q-BRIDGE-MIB::dot1qVlanStaticUntaggedPorts.{}'.format(self._vlan_id),  self._b2astr(self._table_untagged) ),
+                                     ('Q-BRIDGE-MIB::dot1qVlanForbiddenEgressPorts.{}'.format(self._vlan_id), self._b2astr(self._table_forbidden)),
+                                     ('Q-BRIDGE-MIB::dot1qVlanStaticEgressPorts.{}'.format(self._vlan_id),    self._b2astr(self._table_tagged)   )])
         else:
             raise Exception("NOT yet implemented")
 
@@ -231,7 +234,6 @@ class SNMP_Vlanlist():
         return self
 
     def get_port_membership(self, portidx):
-        #if self._vlans is None or self._vlans_dirty:
         self._refresh()
         ret = []
         for vlan in self._vlans:
