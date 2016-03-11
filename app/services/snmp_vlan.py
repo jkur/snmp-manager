@@ -1,6 +1,8 @@
 # coding: utf-8
 import math
 import binascii
+from struct import pack
+
 
 # Factory
 class SNMP_Vlan():
@@ -25,8 +27,20 @@ class Hex_Array():
         self._inverted = inverted
 
     def __repr__(self):
-        return ''.join(["%02X " % x for x in self._data]).strip()
+        # return ''.join(["%02X " % x for x in self._data]).strip()
+        ret = b''
+        for b in self._data:
+            ret += pack('B', b)
+        return ret
 
+    def bytestring(self):
+        # return ''.join(["%02X " % x for x in self._data]).strip()
+        ret = b''
+        for b in self._data:
+            ret += pack('B', b)
+        return ret.decode('latin-1')
+
+    
     def __getitem__(self, idx):
         byte_idx, portvalue = self._read_byte(idx)
         return (self._data[byte_idx] & portvalue) == portvalue
@@ -158,9 +172,12 @@ class SNMP_Vlan_Base(object):
             self._table_untagged[portnum] = False
             self._table_forbidden[portnum] = False
 
-            self._snmp.set_multiple([('Q-BRIDGE-MIB::dot1qVlanStaticUntaggedPorts.{}'.format(self._vlan_id),  self._b2astr(self._table_untagged) ),
-                                     ('Q-BRIDGE-MIB::dot1qVlanForbiddenEgressPorts.{}'.format(self._vlan_id), self._b2astr(self._table_forbidden)),
-                                     ('Q-BRIDGE-MIB::dot1qVlanStaticEgressPorts.{}'.format(self._vlan_id),    self._b2astr(self._table_tagged)   )])
+            v1 = self._table_untagged.bytestring()
+            v2 = self._table_forbidden.bytestring()
+            v3 = self._table_tagged.bytestring()
+            self._snmp.set_multiple([('1.3.6.1.2.1.17.7.1.4.3.1.4.{}'.format(self._vlan_id), v1),
+                                     ('1.3.6.1.2.1.17.7.1.4.3.1.3.{}'.format(self._vlan_id), v2),
+                                     ('1.3.6.1.2.1.17.7.1.4.3.1.2.{}'.format(self._vlan_id), v3)])
         else:
             raise Exception("NOT yet implemented")
 
