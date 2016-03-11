@@ -171,15 +171,19 @@ class SNMP_Vlan_Base(object):
             self._table_tagged[portnum] = True
             self._table_untagged[portnum] = False
             self._table_forbidden[portnum] = False
-
-            v1 = self._table_untagged.bytestring()
-            v2 = self._table_forbidden.bytestring()
-            v3 = self._table_tagged.bytestring()
-            self._snmp.set_multiple([('1.3.6.1.2.1.17.7.1.4.3.1.4.{}'.format(self._vlan_id), v1),
-                                     ('1.3.6.1.2.1.17.7.1.4.3.1.3.{}'.format(self._vlan_id), v2),
-                                     ('1.3.6.1.2.1.17.7.1.4.3.1.2.{}'.format(self._vlan_id), v3)])
+        elif status_code == 'n':
+            self._table_tagged[portnum] = False
+            self._table_untagged[portnum] = False
+            self._table_forbidden[portnum] = False
         else:
             raise Exception("NOT yet implemented")
+
+        v1 = self._table_untagged.bytestring()
+        v2 = self._table_forbidden.bytestring()
+        v3 = self._table_tagged.bytestring()
+        self._snmp.set_multiple([('1.3.6.1.2.1.17.7.1.4.3.1.4.{}'.format(self._vlan_id), v1),
+                                 ('1.3.6.1.2.1.17.7.1.4.3.1.3.{}'.format(self._vlan_id), v2),
+                                 ('1.3.6.1.2.1.17.7.1.4.3.1.2.{}'.format(self._vlan_id), v3)])
 
     def is_tagged(self, portnum):
         if self._table_untagged[portnum]:

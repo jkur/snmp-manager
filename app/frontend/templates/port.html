@@ -23,6 +23,7 @@
     
     <div class="large-12 columns">
       <a href="/switch/{{ hostname }}">Back to Switch: {{ hostname }}</a>
+      <form action="/port/{{ hostname }}/{{ port.idx() }}/save" method="POST">
       <table>
         <tr>
         <th>Port idx</th>
@@ -33,13 +34,8 @@
         <th>Auth Vid</th>
         <th>Macs</th>
         </tr>
-        <form action="/port/{{ hostname }}/{{ port.idx() }}/save" method="POST">
         <tr>
-          <td>
-            <span class="label{% if port.is_up() %} success{% endif %}">
-              {{ port.idx() }}
-            </span>
-          </td>
+          <td><span class="label{% if port.is_up() %} success{% endif %}">{{ port.idx() }}</span></td>
           <td>{{ port.descr() }}</td>
           <td><input name='ifalias' type='text' value='{{ port.alias() }}' /></td>
           <td>
@@ -50,15 +46,12 @@
           </td>
           <td><input name='UNAUTHVID' type='number' style="width:4.5em;" min=-1 max=200 value="{{ port.unauth_vid() }}" /></td>
           <td><input name='AUTHVID' type='number' style="width:4.5em;" min=-1 max=200 value="{{ port.auth_vid() }}" /></td>
-          <td>
-          {% for mac in port.get_macs() %}
-            {{ mac }}&nbsp;
-          {% endfor %}
+          <td>{% for mac in port.get_macs() %} {{ mac }}&nbsp;{% endfor %}
           </td>
         </tr>
       </table>
       <button type="submit">Speichern</button>
-        </form>
+      </form>
       {% if port.has_port_auth() %}
         <table>
         {% for item in port.get_auth_info() %}
@@ -68,41 +61,54 @@
         {% endfor %}
         </table>
       {% endif %}
-
+    </div>
+    <div class="large-12 columns">
       <!-- Port membership -->
       <h5>VLAN Membership</h5>
+      {% set vlans = device.vlans() %}
+      <div class="large-5 columns">
       <table>
         <thead>
           <tr>
             <th>VLAN ID</th>
             {%- for vlan_id in vlan_membership %}
-              <th>{{ vlan_id.0 }}</th>
+              <th>{{ vlans.get_vlan(vlan_id.0).name() }} ({{ vlan_id.0 }})</th>
             {%- endfor %}
           </tr>
         </thead>
         <tr>
-          <td>&nbsp;</td>
-          {%- for vlan_mem in vlan_membership %}
+            <td>&nbsp;</td>
+            {%- for vlan_mem in vlan_membership %}
+            <td>
             {%- if vlan_mem.1 == 'f' %}
-              <td><span class="label alert">Forbid</span></td>
+              <span class="label alert">Forbid</span>
             {%- elif vlan_mem.1 == 'u' %}
-              <td><span class="label success">Untagged</span></td>
+              <span class="label success">Untagged</span>
             {%- elif vlan_mem.1 == 't' %}
-              <td><span class="label">Tagged</span></td>
+              <span class="label">Tagged</span>
             {%- endif %}
+            <form action="/port/{{ device.hostname }}/{{ port.idx() }}/remove/vlan" method="POST">
+              <input type="hidden" name="vlan" value="{{ vlan_mem.0 }}" />
+              <button type="submit" class="label alert">X</button>
+            </form>
+            </td>
           {%- endfor %}
+
         </tr>
       </table>
-      <form action="/port/{{device.hostname}}/{{port.idx()}}/add/vlan" method="POST">
-        <input type="select" name="vlan">
-          <option value=3 name="LAN1">
-          <option value=4 name="LAN2">
-          <option value=6 name="LAN3">
-          <option value=100 name="MGMT">
-        </input>
-        <button type="submit">Hinzufügen</button>
-      </form>
-    </div>
+      </div>
+      <div class="large-5 columns">
+        <form action="/port/{{device.hostname}}/{{port.idx()}}/add/vlan" method="POST">
+          <select name="vlan" style="width:20ex;">
+            {% for vlan in vlans %}
+              <option value={{ vlan.vid() }}>{{ vlan.name() }}</option>
+            {% endfor %}
+          </select>
+          <button class="small" type="submit">Hinzufügen</button>
+        </form>
+      </div>
+      <div class="large-2 columns">
+      </div>
   </div>
   
 {% endblock %}
