@@ -66,7 +66,6 @@
       <!-- Port membership -->
       <h5>VLAN Membership</h5>
       {% set vlans = device.vlans() %}
-      <div class="large-5 columns">
       <table>
         <thead>
           <tr>
@@ -74,6 +73,7 @@
             {%- for vlan_id in vlan_membership %}
               <th>{{ vlans.get_vlan(vlan_id.0).name() }} ({{ vlan_id.0 }})</th>
             {%- endfor %}
+            <th>Add tagged VLAN</th>
           </tr>
         </thead>
         <tr>
@@ -93,22 +93,19 @@
             </form>
             </td>
           {%- endfor %}
-
+          <td>
+          <form action="/port/{{device.hostname}}/{{port.idx()}}/add/vlan" method="POST">
+            <select name="vlan">
+              {% for vlan in vlans %}
+                <option value={{ vlan.vid() }}>{{ vlan.name() }}</option>
+              {% endfor %}
+            </select>
+            <button class="small" type="submit">Hinzufügen</button>
+          </form>
+          </td>
         </tr>
       </table>
-      </div>
-      <div class="large-5 columns">
-        <form action="/port/{{device.hostname}}/{{port.idx()}}/add/vlan" method="POST">
-          <select name="vlan" style="width:20ex;">
-            {% for vlan in vlans %}
-              <option value={{ vlan.vid() }}>{{ vlan.name() }}</option>
-            {% endfor %}
-          </select>
-          <button class="small" type="submit">Hinzufügen</button>
-        </form>
-      </div>
-      <div class="large-2 columns">
-      </div>
+    </div>
   </div>
   
 {% endblock %}
